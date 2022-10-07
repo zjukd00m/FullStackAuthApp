@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  server:
+    container_name: server
+    restart: always
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    env_file:
+      - ./server/.env.development
+    ports:
+      - "8088:8088"
+    depends_on:
+      - "postgres"
+
+  webapp:
+    container_name: webapp
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=tylerdurden
+      - POSTGRES_PASSWORD=fightclub
+      - POSTGRES_DB=pyauthdb
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=tyler@durden.com
+      - PGADMIN_DEFAULT_PASSWORD=thefightclub
+      - PGADMIN_LISTEN_PORT=80
+    ports:
+      - "5000:80"
