@@ -1,0 +1,98 @@
+.view {
+    height: 100vh;
+    background-color: #363536;
+}
+
+.signin-form {
+    background-color: white;
+    min-width: 50vh;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.form-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.form-title {
+    font-size: 32px;
+}
+
+.form-element {
+    margin: 2rem 0;
+}
+
+.form-input-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.6rem 0;
+    padding-left: 3.3rem;
+    outline: none;
+    background-color: #e5e9f0;
+    border: none;
+    font-size: 14px;
+}
+
+.with-icon {
+    display: flex;
+    flex-direction: row;
+}
+
+.input-icon {
+    position: absolute;
+    left: 0;
+    padding-left: 1rem;
+    height: 20px;
+    width: 20px;
+}
+
+.input-error {
+    font-size: 14px;
+    color: #bf616a;
+}
+
+.submit-button {
+    padding: 0.5rem 0.8rem;
+    width: 100%;
+    /* background-color: #5e81ac; */
+    background-color: #2bfb82;
+    color: white;
+    border: none;
+    font-size: 16px;
+}
+
+.form-link {
+    font-size: 14px;
+    text-decoration: none;
+    color: black;
+    border-bottom: 1px solid black;
+}
+
+.form-footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-footer > p {
+    font-size: 14px;
+}
+
+.password-forget {
+    text-decoration: none;
+    color: #81a1c1;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 1rem 0;
+}

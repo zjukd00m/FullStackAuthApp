@@ -1,0 +1,25 @@
+{% extends 'origin.html' %}
+<!--  -->
+
+{% block section %}
+<div class="root">
+  {% include 'navbar.html' %}
+  <div class="container">
+    <div style="margin: 40px 0">
+      <a id="users-section-link" href="/"> Users </a>
+      <a href="/projects" id="projects-section-link"> Projects </a>
+    </div>
+    {% block content %}
+    <!--  -->
+    {% endblock content %}
+  </div>
+</div>
+{% endblock section %}
+
+<!--  -->
+{% block scripts %}
+<script src="./../static/js/base.js"></script>
+<script>
+  console.log("In the projects...");
+</script>
+{% endblock scripts %}

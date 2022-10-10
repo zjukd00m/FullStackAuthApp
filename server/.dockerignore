@@ -1,0 +1,8 @@
+.venv
+.idea
+.vscode
+.github
+scripts
+__pycache__
+*.pyc
+tests

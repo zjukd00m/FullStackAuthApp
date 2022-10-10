@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+<!--  -->
+{% block styles %}
+<style>
+  .searchbar-wrapper {
+    display: flex;
+    width: 100%;
+    height: 35px;
+    margin-bottom: 10px;
+    justify-content: space-between;
+  }
+
+  #searchbar-input {
+    padding: 0.3rem 0.5rem;
+    box-sizing: border-box;
+    height: 100%;
+    width: 90%;
+    border-radius: 5px;
+    border: none;
+    background-color: #efefef;
+  }
+
+  .searchbar-button-group {
+    display: flex;
+    height: 100%;
+  }
+
+  #searchbar-submit {
+    padding: 0.3rem 2rem;
+    height: 100%;
+    border-radius: 5px;
+    border: none;
+  }
+
+  #searchbar-actions {
+    margin: 0 12px;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  th {
+    padding: 0.3rem 1rem;
+    letter-spacing: 0.1rem;
+  }
+
+  td {
+    padding: 0.3rem 1rem;
+    font-size: 14px;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid #cccccc;
+  }
+
+  .users-table-wrapper {
+    width: 100%;
+    background-color: #efefef;
+  }
+
+  .users-table {
+    width: 100%;
+    height: 70vh;
+    overflow: scroll;
+  }
+
+  .table-header {
+    background-color: #525e75;
+  }
+
+  .table-body {
+    height: 100%;
+    width: 100%;
+  }
+
+  .table-cell {
+    text-align: center;
+  }
+
+  .table-row {
+    /* padding: 0.3rem 0.5rem; */
+  }
+
+  .cell-header > p {
+    font-size: 18px;
+    text-transform: uppercase;
+  }
+
+  .user-avatar {
+    border-radius: 50%;
+  }
+
+  .data-table {
+    border-radius: 5px;
+  }
+</style>
+{% endblock styles %}
+<!-- -->
+
+{% block content %}
+<div class="data-table">
+  <div class="searchbar-wrapper">
+    <input id="searchbar-input" placeholder="Search users..." />
+    <div class="searhbar-button-group">
+      <button id="searchbar-submit" type="submit">Search</button>
+      <i id="searchbar-actions" class="fa-solid fa-ellipsis-vertical"></i>
+      <div
+        id="searchbar-dropdown"
+        style="
+          background-color: white;
+          z-index: 999;
+          border: 1px solid black;
+          padding: 0.5rem 1rem;
+        "
+      >
+        <ul style="list-style-type: none">
+          <li><p>Add user</p></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- Users table -->
+  <div class="users-table-wrapper" style="z-index: -1">
+    <table id="users-table" class="users-table">
+      <thead class="table-header">
+        <tr class="table-row">
+          <th class="table-cell cell-header"><p>ID</p></th>
+          <th class="table-cell cell-header"><p>Email</p></th>
+          <th class="table-cell cell-header"><p>Confirmed</p></th>
+          <th class="table-cell cell-header"><p>Avatar</p></th>
+          <th class="table-cell cell-header"><p>Active</p></th>
+          <th class="table-cell cell-header"><p>Created At</p></th>
+          <th class="table-cell cell-header"><p>Actions</p></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}
+
+<!-- -->
+{% block scripts %}
+<script>
+  const headers = {
+    "Content-Type": "application/json",
+  };
+
+  let loading = true;
+  let searchText = "";
+  let searchActionsVisible = false;
+
+  async function getUsers(table, tableBody) {
+    loading = true;
+    try {
+      const response = await fetch("/api/auth", { headers });
+
+      const json = await response.json();
+
+      console.log("This is the api call data");
+      console.log(json);
+
+      let usersHTMLRows = "";
+      json?.users?.forEach((user) => {
+        console.log(user);
+        const userRowHTML = `
+      <tr class="table-row">
+        <td class="table-cell">
+          <p> ${user.id} </p>
+        </td>
+        <td class="table-cell">
+          <p>${user.email || "tyler@protonmail.com"}</p>
+        </td>
+        <td class="table-cell">
+          <p>${user.confirmed || false}</p>
+        </td>
+        <td class="table-cell">
+          <img
+            src="${user.profile.avatar}"
+            height="40"
+            width="40"
+            class="user-avatar"
+          />
+        </td>
+        <td class="table-cell">
+          <i 
+            class="fa-solid fa-circle"
+            style="color: ${user.active ? "green" : "green"};"
+          ></i>
+        </td>
+        <td class="table-cell">
+          <p> ${
+            new Date(user.created_at).toLocaleDateString() ||
+            new Date().toLocaleDateString()
+          } </p>
+        </td>
+        <td class="table-cell">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </td>
+      </tr>
+      `;
+        usersHTMLRows += userRowHTML;
+      });
+
+      if (usersHTMLRows?.length) {
+        tableBody.innerHTML = usersHTMLRows;
+      } else {
+        tableBody.innerHTML = `
+          <div style="
+            height=100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <img src="https://img.icons8.com/external-lylac-kerismaker/64/000000/external-Empty-delivery-lylac-kerismaker.png"/> 
+          </div>
+        `;
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      loading = false;
+    }
+  }
+
+  const searchButton = document.getElementById("searchbar-submit");
+  const searchInput = document.getElementById("searchbar-input");
+  const searchActions = document.getElementById("searchbar-actions");
+  const searchDropDown = document.getElementById("searchbar-dropdown");
+  const table = document.getElementById("users-table");
+  const tableBody = document.getElementById("table-body");
+
+  searchDropDown.style.display = "none";
+
+  searchInput.addEventListener("keyup", (e) => {
+    searchText = e.target.value;
+  });
+
+  searchButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    alert(searchText);
+  });
+
+  searchActions.addEventListener("click", () => {
+    searchActionsVisible = !searchActionsVisible;
+
+    // const currentClassName = searchDropDown.className;
+    if (searchActionsVisible) {
+      searchDropDown.style.display = "none";
+    } else {
+      searchDropDown.style.display = "block";
+    }
+  });
+
+  getUsers(table, tableBody);
+</script>
+{% endblock scripts %}

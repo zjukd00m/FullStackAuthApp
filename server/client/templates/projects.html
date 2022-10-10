@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+<!-- -->
+{% block styles %}
+<style>
+  .project-view {
+    display: grid;
+  }
+
+  .project-card {
+    background-color: #525e75;
+    border-radius: 5px;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .card-title {
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+
+  .card-urls {
+    padding: 0.5rem;
+    margin: 0.1rem 0.3rem;
+  }
+</style>
+{% endblock styles %}
+<!--  -->
+
+{% block content %}
+<div class="project-view">
+  <div id="project-cards">
+    <div class="project-card">
+      <p class="card-title">Baggaru</p>
+      <div class="card-urls">
+        <a>Docs</a>
+        <a>Admin</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+<!--  -->
+{% block scripts %}
+<script>
+  const projectCards = document.getElementById("project-cards");
+
+  async function getProjects() {
+    let projectCardsHTML = "";
+    try {
+      const projects = [
+        {
+          id: 1,
+          name: "Baggaru",
+          urls: [
+            {
+              name: "Documents",
+              url: "#",
+            },
+            {
+              name: "Admin",
+              url: "#",
+            },
+            {
+              name: "Partner",
+              url: "#",
+            },
+            {
+              name: "Client",
+              url: "#",
+            },
+          ],
+        },
+      ];
+
+      projectCards.innerHTML = projectCardsHTML;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+</script>
+{% endblock scripts %}

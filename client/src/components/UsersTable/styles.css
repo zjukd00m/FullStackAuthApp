@@ -1,0 +1,116 @@
+.data-table {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
+        rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+}
+
+.table-search {
+    width: 100%;
+}
+
+.search-input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.3rem 0.5rem;
+}
+
+.table-wrapper {
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.table-element {
+    width: 100%;
+    /* height: 100%; */
+    border-collapse: collapse;
+    box-sizing: border-box;
+}
+
+.table-header {
+    background-color: #434c5e;
+    border-bottom: 1px solid black;
+    color: white;
+    font-weight: 600;
+    height: 2.3rem;
+}
+
+.header-element {
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.table-body {
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.body-row {
+    height: 3rem !important;
+    border-bottom: 1px solid black;
+}
+
+.body-row:hover {
+    /* background-color: #d8dee9; */
+    background-color: #eceff4;
+}
+
+.body-cell {
+    font-size: 14px;
+    text-align: center;
+}
+
+/* TODO: Improve the styling */
+.body-cell > button {
+    border: none;
+    padding: 0.4rem 0.8rem;
+}
+
+.body-cell > button:hover {
+    opacity: 100%;
+    font-weight: 600;
+}
+
+.row-empty-state {
+    background-color: #eceff4;
+    column-span: 100;
+}
+
+.row-empty-state > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.row-empty-state > div > p {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.add-user-icon {
+    position: absolute;
+    bottom: 0;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    /* background-color: #434c5e; */
+    padding: 0.3rem;
+}
+
+.add-user-icon:hover {
+    opacity: 80%;
+    transform: scale(1.1);
+}
+
+.btn-group-v {
+    margin-top: 1rem !important;
+}
+
+.btn {
+    padding: 0.5rem 1rem !important;
+}

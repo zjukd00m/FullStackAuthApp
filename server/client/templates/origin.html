@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auth Admin</title>
+    <!-- Font Awesome Icons -->
+    <script
+      src="https://kit.fontawesome.com/207fb70a4b.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="./../static/css/base.css" rel="stylesheet" type="text/css" />
+    <!-- Vue3 -->
+    <style>
+      .container {
+        margin: 0 120px;
+      }
+      #projects-section-link {
+        font-size: 18px;
+        opacity: 100%;
+        margin-left: 20px;
+      }
+      #user-section-link {
+        font-size: 18px;
+        opacity: 100%;
+        margin-right: 20px;
+      }
+      /* TODO: On click, the opacity of the current link is 100 and the other one is 0 */
+      #users-section-link,
+      #projects-section-link {
+        text-decoration: none;
+        color: black;
+      }
+    </style>
+    {% block styles %}
+    <!-- -->
+    {% endblock styles %}
+  </head>
+  <body>
+    <div class="root">
+      {% block section %}
+      <!--  -->
+      {% endblock section %}
+    </div>
+    <script src="./../static/js/base.js"></script>
+    {% block scripts %}
+    <script>
+      console.log("In the projects...");
+    </script>
+    {% endblock scripts %}
+  </body>
+</html>
