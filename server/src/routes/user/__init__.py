@@ -1,4 +1,5 @@
-from typing import List, Union
+from typing import List, Union, Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
@@ -7,6 +8,13 @@ from src.utils.db import engine
 
 
 route = APIRouter()
+
+
+class UserEditInput(BaseModel):
+    active: bool
+    phone_number: str
+    display_name: str
+    avatar: Optional[str]
 
 
 @route.get("/")
@@ -87,3 +95,35 @@ def delete_user(user_id: int):
             "message": "User was deleted successfully"
         }
 
+@route.put("/{user_id}")
+def edit_user(user_id: int, user_data: UserEditInput):
+    with Session(engine) as sess:
+        query = select(User).where(User.id == user_id)
+        user: User = sess.exec(query).first()
+        if not user:
+            raise HTTPException(404, "edit-user.user-not-found")
+
+        edit_user = False
+        
+        if user_data.active != None and user_data.active != user.active:
+            user.active = user_data.active
+            edit_user = True
+
+        if user_data.avatar != user.avatar:
+            user.avatar = user_data.avatar
+            edit_user = True
+
+        if user_data.display_name != user.display_name:
+            user.display_name = user_data.display_name
+            edit_user = True
+
+        if user_data.phone_number != user.phone_number:
+            user.phone_number = user_data.phone_number
+            edit_user = True
+
+        if edit_user:
+            sess.add(user)
+            sess.commit()
+            sess.refresh(user)
+
+        return user.__dict__

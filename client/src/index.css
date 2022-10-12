@@ -2,6 +2,8 @@
 
 :root {
     --main-theme-cta:#81a1c1;
+    --bg-error: #BF616A;
+    --bg-form-light: #e5e9f0;
 }
 
 * {
@@ -20,6 +22,10 @@ code {
 .container {
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px;
     background-color: white;
+}
+
+.bg-error {
+    background-color: var(--bg-error);
 }
 
 /* Button Component */
@@ -55,4 +61,10 @@ code {
 
 .btn-group-v > button {
     width: 100%;
+}
+
+/* Link */
+.link-element {
+    text-decoration: none;
+    color: white;
 }

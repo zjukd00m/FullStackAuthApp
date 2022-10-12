@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { ServiceRequestCallbacks } from "../../services/types";
 import { AuthContext } from "./AuthContext";
-import { AuthServiceUser } from "./types";
+import { AuthServiceUser, AuthUser } from "./types";
 import { API_URL } from "../../settings";
 
 const headers = {
@@ -39,6 +39,7 @@ export default function useAuth() {
                 method: "post",
                 headers: headers,
                 body: body,
+                credentials: "omit",
             });
 
             const data = await r.json();
@@ -122,7 +123,11 @@ export default function useAuth() {
             if (r.ok) {
                 onHTTPSuccess(data);
                 dispatch({ type: "RESET_USER" });
+                window.location.href = "/signin";
             } else {
+                console.log("There was an error with the response")
+                console.log(r.status)
+                console.log(r.statusText)
                 onHTTPError(r.status, data);
             }
         } catch (e: any) {
@@ -158,6 +163,8 @@ export default function useAuth() {
         }
     }
 
+    const updateUser = (userData: AuthUser) => dispatch({ type: "SET_USER", payload: { user: userData }});
+
     return {
         isAuthenticated,
         user,
@@ -167,5 +174,6 @@ export default function useAuth() {
         getProfile,
         loading,
         error,
+        updateUser,
     };
 }

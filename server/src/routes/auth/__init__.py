@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -7,7 +8,7 @@ from sqlmodel import Session, select
 from src.settings import HTML_TEMPLATES_DIR
 from src.services.mailing import send_email
 from src.utils.tokens import add_expiration_time, generate_random_code, validate_token
-from ...models import  Token, User
+from ...models import  Group, Token, User
 from .schema import UserSignIn, UserSignUp
 from ...utils.db import engine
 from ...utils.auth import encode_payload, hash_password, verify_password
@@ -31,6 +32,7 @@ def signup(_user: UserSignUp):
     _user.password = hash_password(_user.password)
 
     with Session(engine) as sess:
+        print("-" * 20)
         query = select(User).where(User.email == _user.email)
         taken_user = sess.exec(query).first()
 
@@ -39,7 +41,34 @@ def signup(_user: UserSignUp):
 
         # Accessing an attribute of an object after commit triggers
         # sql statement to fetch the id of the record
-        user = User(**_user.dict())
+        user_data = _user.dict()
+        user_groups = user_data.get("groups", ["OTHER"])
+
+        del user_data["groups"]
+
+        user = User(**user_data)
+
+        # Add the user to the given groups
+        user_groups_db: List[Group] = []
+
+        print("-" * 20)
+        print("WILL FIND THE USER ROLES")
+
+        if "OTHER" in _user.groups:
+            query = select(Group).where(Group.name == "OTHER")
+            other_group: Group = sess.exec(query).first()
+            if not other_group:
+                raise HTTPException(500, "Missing OTHER group at db")
+            user_groups_db.append(other_group)
+
+        if "ADMIN" in _user.groups:
+            query = select(Group).where(Group.name == "ADMIN")
+            admin_group: Group = sess.exec(query).first()
+            if not admin_group:
+                raise HTTPException(500, "Missing ADMIN group at db")
+            user_groups_db.append(admin_group)
+
+        user.groups = user_groups_db
 
         sess.add(user)
         sess.commit()
@@ -85,7 +114,7 @@ def signin(_user: UserSignIn):
 
     with Session(engine) as sess:
         query = select(User).where(User.email == _user.email)
-        user = sess.exec(query).first()
+        user: User = sess.exec(query).first()
 
         if not user:
             raise HTTPException(404, "auth.sign-in.invalid")
@@ -100,19 +129,31 @@ def signin(_user: UserSignIn):
         sess.add(user)
         sess.commit()
         sess.refresh(user)
+        
+        user_groups = [ group.name for group in user.groups ]
 
-    payload = {"id": user.id, "email": user.email}
+        payload = {"id": user.id, "email": user.email, "groups": user_groups }
 
-    jwt = encode_payload(payload)
+        jwt = encode_payload(payload)
 
+        response_content = {
+            "message": "The user signed in successfully",
+        }
+
+        response = JSONResponse(content=response_content)
+
+        response.set_cookie(key="auth_key", value=jwt, httponly=True)
+
+        return response
+
+
+@route.post("/signout")
+def sign_out(request: Request):
     response_content = {
-        "message": "The user signed in successfully",
+        "message": "The user signed out successfully",
     }
-
     response = JSONResponse(content=response_content)
-
-    response.set_cookie(key="auth_key", value=jwt, httponly=True)
-
+    response.set_cookie(key="auth_key", value=None, httponly=True, max_age=0)
     return response
 
 
@@ -159,9 +200,12 @@ def delete_user(user_id: int):
 def get_profile(request: Request):
     user_id = request.user.id
     with Session(engine) as sess:
-        query = select(User).where(User.id == user_id)
-        user = sess.exec(query).first().dict()
+        query = select(User, Group).where(User.id == user_id)
+        _user, _groups = sess.exec(query).first()
+
+        user = _user.dict()
+        groups = _groups.dict()
 
         del user["password"]
 
-        return user
+        return { **user, "groups": groups }

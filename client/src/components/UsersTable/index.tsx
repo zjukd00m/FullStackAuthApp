@@ -130,6 +130,8 @@ export default function UsersTable() {
                                         </td>
                                         <td className="body-cell">
                                             <button
+                                                className="btn bg-error"
+                                                style={{ fontSize: "12px" }}
                                                 onClick={() =>
                                                     handleDeleteUser(user.id)
                                                 }

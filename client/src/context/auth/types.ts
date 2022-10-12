@@ -1,6 +1,10 @@
 import React from "react";
 import { ServiceRequestCallbacks } from "../../services/types";
 
+export interface UserGroups {
+    id: number;
+    name: "ADMIN" | "OTHER";
+}
 export interface AuthUser {
     id: number;
     email: string;
@@ -11,6 +15,15 @@ export interface AuthUser {
     phone_number?: string;
     display_name?: string;
     avatar?: string;
+    groups?: UserGroups;
+}
+
+export interface AuthUserEdit {
+    active: boolean;
+    phone_number?: string;
+    display_name?: string;
+    avatar: string;
+    groups?: UserGroups;
 }
 
 

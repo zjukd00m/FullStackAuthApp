@@ -27,7 +27,7 @@
 }
 
 .user-form-label {
-    font-size: 18px;
+    font-size: 20px;
     margin-bottom: 0.3rem;
 }
 
@@ -43,6 +43,7 @@
     border: none;
     background-color: #eceff4;
     box-sizing: border-box;
+    font-size: 16px;
 }
 
 .user-form-input-with-icon {

@@ -3,11 +3,21 @@
 # and we tell SQL database that this field is nullable
 age: Optional[int] = None
 """
-from typing import Optional
-from sqlmodel import Field, SQLModel
+from typing import List, Optional
+from sqlmodel import Field, SQLModel, Relationship
 from datetime import datetime
+from enum import Enum
 
 DEFAULT_AVATAR_URL = "https://toppng.com/public/uploads/preview/batman-icon-jira-avatar-11562897771zvwv8r510z.png"
+
+
+class GroupType(str, Enum):
+    ADMIN = "ADMIN"
+    OTHER = "OTHER"
+
+class UserGroup(SQLModel, table=True):
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id", primary_key=True)
+    group_id: Optional[int] = Field(default=None, foreign_key="group.id", primary_key=True)
 
 
 class User(SQLModel, table=True):
@@ -22,6 +32,8 @@ class User(SQLModel, table=True):
     display_name: Optional[str] = None
     phone_number: Optional[str] = None
     avatar: Optional[str] = Field(default=DEFAULT_AVATAR_URL)
+
+    groups: List["Group"] = Relationship(back_populates="users", link_model=UserGroup)
 
 
 class Document(SQLModel, table=True):
@@ -41,8 +53,10 @@ class APIKey(SQLModel, table=True):
 
 class Group(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str
- 
+    name: GroupType
+
+    users: List["User"] = Relationship(back_populates="groups", link_model=UserGroup)
+
 
 class Perms(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

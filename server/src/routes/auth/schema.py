@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, validator
 from email_validator import validate_email, EmailNotValidError
 
@@ -26,6 +26,7 @@ from email_validator import validate_email, EmailNotValidError
 class UserSignUp(BaseModel):
     email: str
     password: str
+    groups: Optional[List[str]] = ["OTHER"]
 
     @validator("email")
     def email_validator(cls, v):

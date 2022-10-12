@@ -10,6 +10,6 @@ DB_URI = (
 )
 
 # Enable while on debug mode to track the database logs
-engine = create_engine(DB_URI, echo=True, future=True)
+engine = create_engine(DB_URI, echo=False, future=True)
 
 session = sessionmaker(engine, expire_on_commit=False)

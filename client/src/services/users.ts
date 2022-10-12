@@ -1,3 +1,4 @@
+import { AuthUserEdit } from "../context/auth/types";
 import { API_URL } from "../settings";
 import { ServiceRequestCallbacks } from "./types";
 
@@ -117,6 +118,39 @@ export class UserService {
             onHTTPNetworkError(e);
         }
     }
+
+    async editUser(
+        userId: number,
+        userData: AuthUserEdit,
+        {
+            onHTTPSuccess,
+            onHTTPError,
+            onHTTPNetworkError,
+        }: ServiceRequestCallbacks
+    ) {
+        const url = `${this.BASE_URL}/api/users/${userId}`;
+
+        const payload = JSON.stringify(userData);
+
+        try {
+            const r = await fetch(url, {
+                method: "put",
+                headers: headers,
+                body: payload,
+            });
+
+            const data = await r.json();
+
+            if (r.ok) {
+                onHTTPSuccess(data);
+            } else {
+                onHTTPError(r.status, data);
+            }
+        } catch (e: any) {
+            onHTTPNetworkError(e);
+        }
+    }
+
 }
 
 export const userService = new UserService(API_URL);

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import useAuth from "../../context/auth/AuthHook";
 import { AuthUser } from "../../context/auth/types";
 import "./styles.css";
 
@@ -22,20 +24,6 @@ function DropdownMenu(props: DropdownMenuProps) {
     );
 }
 
-const profileMenu = [
-    {
-        element: <p> Settings </p>,
-        action: () => {
-            alert("Let's go to the settings");
-        },
-    },
-    {
-        element: <p> Sign out </p>,
-        action: () => {
-            alert("Will sign out");
-        },
-    },
-];
 
 interface NavbarProps {
     user: AuthUser;
@@ -43,6 +31,29 @@ interface NavbarProps {
 
 export default function Navbar({ user }: NavbarProps) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const { signOut } = useAuth();
+
+    const profileMenu = [
+        {
+            element: <Link to="/profile" className="link-element"> <p> Settings </p> </Link>,
+            action: () => { }
+        },
+        {
+            element: <p> Sign out </p>,
+            action: () => signOut({
+                onHTTPSuccess: (data) => {
+                    console.log(data);
+                },
+                onHTTPError: (status, data) => {
+                    console.log(status);
+                    console.log(data);
+                },
+                onHTTPNetworkError: (e) => {
+                    console.log(e.message);
+                }
+            })
+        },
+    ];
 
     function handleProfileClick() {
         setShowProfileMenu(!showProfileMenu);

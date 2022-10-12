@@ -42,16 +42,20 @@
     margin-top: 1rem;
     padding: 0;
     border-radius: 0.7rem;
+    z-index: 999;
 }
 
 .dropdown-element {
     padding: 0.1rem 1rem;
-    border-bottom: 1px solid #d8dee9;
     color: white;
     font-weight: 500;
 }
 
-.dropdown-element:hover {
+.dropdown-element:nth-child(odd) {
+    border-bottom: 1px solid #d8dee9;
+}
+
+.dropdown-element > p:hover, .link-element:hover {
     opacity: 70%;
     color: #2bfb82;
 }
