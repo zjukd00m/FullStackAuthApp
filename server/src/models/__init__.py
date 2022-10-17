@@ -15,9 +15,14 @@ class GroupType(str, Enum):
     ADMIN = "ADMIN"
     OTHER = "OTHER"
 
+
 class UserGroup(SQLModel, table=True):
-    user_id: Optional[int] = Field(default=None, foreign_key="user.id", primary_key=True)
-    group_id: Optional[int] = Field(default=None, foreign_key="group.id", primary_key=True)
+    user_id: Optional[int] = Field(
+        default=None, foreign_key="user.id", primary_key=True
+    )
+    group_id: Optional[int] = Field(
+        default=None, foreign_key="group.id", primary_key=True
+    )
 
 
 class User(SQLModel, table=True):
@@ -72,7 +77,6 @@ class Token(SQLModel, table=True):
 
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
 
-    
     def is_valid(self) -> bool:
         current_time = datetime.now()
         if current_time < self.expires_at and not self.scanned:

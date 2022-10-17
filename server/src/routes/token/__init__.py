@@ -25,7 +25,9 @@ def generate_token(email: str):
         if not date_last_token:
             raise HTTPException(404, "generate-token.user-has-not-previous-tokens")
 
-        query = select(Token).where(Token.expires_at >= date_last_token, Token.user_id == user.id)
+        query = select(Token).where(
+            Token.expires_at >= date_last_token, Token.user_id == user.id
+        )
         last_token: Token = sess.exec(query).first()
 
         if last_token.expires_at > datetime.now() and not last_token.scanned:

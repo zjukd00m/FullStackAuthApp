@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 from src.settings import HTML_TEMPLATES_DIR
 from src.services.mailing import send_email
 from src.utils.tokens import add_expiration_time, generate_random_code, validate_token
-from ...models import  Group, Token, User
+from ...models import Group, Token, User
 from .schema import UserSignIn, UserSignUp
 from ...utils.db import engine
 from ...utils.auth import encode_payload, hash_password, verify_password
@@ -90,9 +90,7 @@ def signup(_user: UserSignUp):
                 "Email confirmation",
                 "EMAIL_CONFIRMATION",
                 to=[user.email],
-                args={
-                    "token": token.token
-                }
+                args={"token": token.token},
             )
         except Exception as e:
             raise HTTPException(500, e.__str__())
@@ -129,10 +127,10 @@ def signin(_user: UserSignIn):
         sess.add(user)
         sess.commit()
         sess.refresh(user)
-        
-        user_groups = [ group.name for group in user.groups ]
 
-        payload = {"id": user.id, "email": user.email, "groups": user_groups }
+        user_groups = [group.name for group in user.groups]
+
+        payload = {"id": user.id, "email": user.email, "groups": user_groups}
 
         jwt = encode_payload(payload)
 
@@ -162,7 +160,7 @@ def confirm_email(token: str, request: Request):
     with Session(engine) as sess:
         query = select(Token, User).where(Token.token == token)
         _token = sess.exec(query).first()
-        
+
         if not _token or not len(_token) == 2:
             raise HTTPException(404, "auth-confirm.token-not-found")
 
@@ -175,9 +173,10 @@ def confirm_email(token: str, request: Request):
         user.confirmed = True
 
         sess.add(user)
+        sess.delete(token)
         sess.commit()
 
-    return templates.TemplateResponse("email-confirmed.html", { "request": request })
+    return templates.TemplateResponse("email-confirmed.html", {"request": request})
 
 
 @route.delete("/{user_id}")
@@ -208,4 +207,4 @@ def get_profile(request: Request):
 
         del user["password"]
 
-        return { **user, "groups": groups }
+        return {**user, "groups": groups}

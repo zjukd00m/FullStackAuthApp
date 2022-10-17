@@ -1,6 +1,8 @@
+import io
+import csv
 from typing import List, Union, Optional
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
 from src.models import Token, User
@@ -17,6 +19,44 @@ class UserEditInput(BaseModel):
     avatar: Optional[str]
 
 
+@route.post("/load")
+async def add_users(users_file: UploadFile):
+    if users_file.content_type != "text/csv":
+        raise HTTPException(422, "load-users/format-not-supported")
+
+    # Reads all the content from the file into memory
+    users_csv_string = await users_file.read()
+    users_csv_string = users_csv_string.decode()
+
+    users_csv = csv.reader(io.StringIO(users_csv_string), delimiter=",")
+
+    # Insert the users into the database if valid
+    with Session(engine) as sess:
+        for index, row in enumerate(users_csv):
+            if index == 0:
+                continue
+
+            query = select(User.email).where(User.email == row[0])
+            existing_user = sess.exec(query).first()
+
+            # If the email is from an existing user, skip it and add it to a temporal datastructure
+            if existing_user:
+                continue
+
+            user = User(
+                email=row[0],
+                display_name=row[1],
+                password=row[5],
+                phone_number=row[3],
+                avatar=row[4],
+            )
+
+            sess.add(user)
+        sess.commit()
+
+    return {"message": "Users were added to the database"}
+
+
 @route.get("/")
 def get_users(query: Union[str, None] = None):
     with Session(engine) as sess:
@@ -26,7 +66,7 @@ def get_users(query: Union[str, None] = None):
 
         if query and len(query):
             query = query.strip()
-            _query = F"""
+            _query = f"""
             SELECT
                 id,
                 email,
@@ -42,7 +82,7 @@ def get_users(query: Union[str, None] = None):
             ORDER BY email DESC; 
             """
             users = sess.exec(_query).all()
-            
+
             for user in users:
                 parsed_users.append(jsonable_encoder(dict(user)))
         else:
@@ -54,7 +94,6 @@ def get_users(query: Union[str, None] = None):
                 parsed_users.append(user)
 
         return parsed_users
-
 
 
 @route.get("/{user_id}")
@@ -87,13 +126,12 @@ def delete_user(user_id: int):
 
         if not user:
             raise HTTPException(404, "delete-user.user-not-found")
-            
+
         sess.delete(user)
         sess.commit()
 
-        return {
-            "message": "User was deleted successfully"
-        }
+        return {"message": "User was deleted successfully"}
+
 
 @route.put("/{user_id}")
 def edit_user(user_id: int, user_data: UserEditInput):
@@ -104,7 +142,7 @@ def edit_user(user_id: int, user_data: UserEditInput):
             raise HTTPException(404, "edit-user.user-not-found")
 
         edit_user = False
-        
+
         if user_data.active != None and user_data.active != user.active:
             user.active = user_data.active
             edit_user = True
@@ -127,3 +165,8 @@ def edit_user(user_id: int, user_data: UserEditInput):
             sess.refresh(user)
 
         return user.__dict__
+
+
+@route.patch("/{user_id}")
+def edit_user_form():
+    return {"message": "user was edited successfully"}

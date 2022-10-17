@@ -38,17 +38,9 @@ app.include_router(
     tags=["auth"],
 )
 
-app.include_router(
-    token.route,
-    prefix="/api/tokens",
-    tags=["tokens"]
-)
+app.include_router(token.route, prefix="/api/tokens", tags=["tokens"])
 
-app.include_router(
-    user.route,
-    prefix="/api/users",
-    tags=["users"]
-)
+app.include_router(user.route, prefix="/api/users", tags=["users"])
 
 
 @app.on_event("startup")
