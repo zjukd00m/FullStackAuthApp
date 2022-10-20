@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { ServiceRequestCallbacks } from "../../services/types";
 import { AuthContext } from "./AuthContext";
 import { AuthServiceUser, AuthUser } from "./types";
@@ -15,6 +15,17 @@ export default function useAuth() {
         state: { isAuthenticated, user, error },
         dispatch,
     } = useContext(AuthContext);
+
+    useEffect(() => {
+        ;(async () => {
+            await getProfile({
+                onHTTPSuccess: () => {
+                },
+                onHTTPError: () => {},
+                onHTTPNetworkError: () => {},
+            })
+        })()
+    }, []);
 
     async function signUp(requestArgs: AuthServiceUser) {
         setLoading(true);

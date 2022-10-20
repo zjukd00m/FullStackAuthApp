@@ -42,7 +42,8 @@ export type ActionType =
     | "SET_USER"
     | "SET_PROFILE"
     | "RESET_USER"
-    | "SET_ERROR";
+    | "SET_ERROR"
+    | "SET_IS_AUTHENTICATED";
 
 export interface IAuthContext {
     state: IAuthState;

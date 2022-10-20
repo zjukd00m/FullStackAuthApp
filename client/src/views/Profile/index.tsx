@@ -1,25 +1,65 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { AiFillEdit } from "react-icons/ai";
+import { toast } from "react-toastify";
+import { Buffer } from "buffer";
 import useAuth from "../../context/auth/AuthHook"
-import { AuthUser, AuthUserEdit } from "../../context/auth/types";
+import { AuthUserEdit } from "../../context/auth/types";
 import "./styles.css";
 import { useState } from "react";
 import { userService } from "../../services/users";
 
-interface UserCardProps {
-    user: AuthUser;
-}
-
 const DEFAULT_USER_AVATAR = "https://imgs.search.brave.com/lMxuKwFzR-jhWAjWhFLwRAkTNjWMjs08M1_X_PFMnmQ/rs:fit:512:512:1/g:ce/aHR0cHM6Ly9jZG4z/Lmljb25maW5kZXIu/Y29tL2RhdGEvaWNv/bnMvYXZhdGFycy0x/NS82NC9fTmluamEt/Mi01MTIucG5n";
 
-function UserCard(props?: UserCardProps) {
+export default function Profile() {
     const { user, updateUser } = useAuth();
-    const [enableEditPhone, setEnableEditPhone] = useState(false);
-    const [enableEditName, setEnableEditName] = useState(false);
-    const [enableEditAvatar, setEnableEditAvatar] = useState(false);
-    const [phone, setPhone] = useState(user.phone_number);
-    const [name, setName] = useState(user.display_name);
-    const [avatar, setAvatar] = useState(user.avatar || DEFAULT_USER_AVATAR);
+    const [enableEditPhone, setEnableEditPhone] = useState<boolean>(false);
+    const [enableEditName, setEnableEditName] = useState<boolean>(false);
+    const [phone, setPhone] = useState<string | undefined>("");
+    const [name, setName] = useState<string | undefined>("");
+    const [avatar, setAvatar] = useState<string | undefined>("");
+    const [avatarFile, setAvatarFile] = useState<{
+        content: string;
+        type: string;
+    }>();
+
+    const avatarBtnRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!user) return;
+        setName(user.display_name);
+        setPhone(user.phone_number);
+        setAvatar(user.avatar);
+    }, [user]);
+
+    useEffect(() => {
+        if (!avatarBtnRef) return;
+
+        avatarBtnRef.current?.addEventListener("change", async () => {
+            const files = avatarBtnRef.current?.files;
+
+            if (!files?.length) return;
+            
+            const { type, size } = files[0];
+
+            if (type !== "image/png" && type !== "image/jpeg") {
+                toast.warn(`The mimetype ${type} is not supported`);
+                return;
+            } else if (size / (1024 ** 2) > 10.0) {
+                toast.warn("The image size can't be greater than 10 MB");
+                return;
+            }
+
+            if (avatarBtnRef?.current)
+                avatarBtnRef.current.style.backgroundColor = "green";
+
+            const buffer = await files[0].arrayBuffer();
+
+            const imageBase64 = Buffer.from(buffer).toString("base64");
+
+            setAvatarFile({ content: imageBase64, type });
+        });
+    }, []);
 
     async function handleSubmitUserForm(e: any) {
         e.preventDefault();
@@ -27,23 +67,27 @@ function UserCard(props?: UserCardProps) {
         if (!phone?.length || !name?.length) return;
 
         const userData: AuthUserEdit = {
-            active: user.active,
-            ...(avatar?.length ? { avatar } : { avatar: DEFAULT_USER_AVATAR  }),
+            active: user?.active,
+            ...(avatarFile?.content?.length ? { avatar: `data:${avatarFile?.type};base64,${avatarFile.content}` } : { avatar: DEFAULT_USER_AVATAR  }),
             ...(phone?.length && { phone_number: phone }),
             ...(name?.length && { display_name: name }),
         }
+
+        console.log(userData)
        
         await userService.editUser(user.id, userData, {
             onHTTPSuccess: (data) => {
-                console.log(data);
                 updateUser(data);
+                toast.success("Your information was updated");
             },
             onHTTPError: (status, data) => {
-                console.log(data);
-                alert(status);
+                if (data.message)
+                    toast.error(data.message);
+                else
+                    toast.error(status);
             },
             onHTTPNetworkError: (e) => {
-                console.log(e.message);
+                toast.error(e.message);
             }
         })
     }
@@ -53,13 +97,9 @@ function UserCard(props?: UserCardProps) {
             <div>
                 <form className="card-form" onSubmit={handleSubmitUserForm}>
                     <div className="card-form-element">
-                        <label> Avatar </label>
+                        <p style={{ fontSize: "24px" }}> Profile </p>
                         <img className="card-form-img" src={user.avatar || DEFAULT_USER_AVATAR} height="150" width="150" />
-                        {/* <input className="card-form-img-input" type="file" /> */}
-                        <div className="card-form-input-group input-with-icon">
-                            <input className="card-form-input" value={avatar} style={{ paddingRight: "3rem", overflow: "hidden" }}  type="text" onChange={(e) => setAvatar(e.target.value)} disabled={!enableEditAvatar} />
-                            <AiFillEdit className="card-form-element-icon" onClick={() => setEnableEditAvatar(!enableEditAvatar)} /> 
-                        </div>
+                        <input className="card-form-img-input" type="file" ref={avatarBtnRef} />
                     </div>
                     <div className="card-form-element">
                         <label> Name </label>
@@ -77,28 +117,18 @@ function UserCard(props?: UserCardProps) {
                     </div>
                     <button className="user-card-btn btn btn-primary btn-small"> Save </button>
                 </form>
-                <p> Last Sign in: <span> { user.last_sign_in } </span> </p>
-                <p> Active: <span> { user.active ? "True" : "False" } </span> </p>
+                <p> Last Sign in: <span> { user?.last_sign_in } </span> </p>
+                <p> Active: <span> { user?.active ? "True" : "False" } </span> </p>
                 <div className="card-confirmed-container">
-                    <p> Confirmed: <span> { user.confirmed ? "True" : "False" } </span> </p>
+                    <p> Confirmed: <span> { user?.confirmed ? "True" : "False" } </span> </p>
                     { !user.confirmed && <button className="btn btn-primary btn-small"> Send email </button> }
                 </div>
-                <p> Created at: <span> { user.created_at } </span> </p>
+                <p> Created at: <span> { user?.created_at } </span> </p>
             </div>
             <div>
-                <Link to="/profile"> <p> Profile </p> </Link>
-                <Link to="/profile/security"> <p> Security </p> </Link>
+                <Link to="/profile" className="link-btn"> Profile </Link>
+                <Link to="/profile/security" className="link-btn"> Security </Link>
             </div>
-        </div>
-    )
-}
-
-export default function Profile() {
-    const { user } = useAuth();
-
-    return (
-        <div>
-            <UserCard user={user} />
         </div>
     )
 }

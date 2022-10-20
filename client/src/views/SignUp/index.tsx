@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { MdOutlineEmail } from "react-icons/md";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { toast } from "react-toastify";
 import useAuth from "../../context/auth/AuthHook";
 import { validateEmail, validatePassword } from "../../utils/validators";
 import "./styles.css";
@@ -47,17 +48,14 @@ export default function SignUp() {
         await signUp({
             email,
             password,
-            onHTTPSuccess: (data) => {
-                console.log("Success sign up");
-                console.log(data);
+            onHTTPSuccess: () => {
                 window.location.href = "/signin";
             },
-            onHTTPError: (status, data) => {
-                console.log(status);
-                alert(data.detail);
+            onHTTPError: (_, data) => {
+                toast.error(data.detail);
             },
             onHTTPNetworkError(e) {
-                alert(e.message);
+                toast.error(e.message);
             },
         });
     }

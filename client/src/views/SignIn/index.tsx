@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdOutlineEmail } from "react-icons/md";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { toast } from "react-toastify";
 import useAuth from "../../context/auth/AuthHook";
 import "./styles.css";
 import { validateEmail } from "../../utils/validators";
@@ -19,7 +20,11 @@ export default function SignIn() {
         password: null,
     });
 
-    const { signIn, error, user, isAuthenticated } = useAuth();
+    const { signIn, isAuthenticated } = useAuth();
+
+    useEffect(() => {
+        if (isAuthenticated) document.location.href = "/"
+    }, [isAuthenticated]);
 
     async function handleSubmit(e: any) {
         e.preventDefault();
@@ -47,16 +52,16 @@ export default function SignIn() {
             email,
             password,
             onHTTPSuccess: async () => {
-                console.log("The user data was ok")
                 window.location.href = "/";
             },
-            onHTTPError: (status, data) => {
-                console.log(status);
-                alert(data.detail);
+            onHTTPError: (_, data) => {
+                if (data.detail === "auth.invalid-user-or-password")
+                    toast.error("Incorrect email or password");
+                else
+                    toast.error(data.detail);
             },
             onHTTPNetworkError: (e) => {
-                console.log("A network error");
-                alert(e.message);
+                toast.error(e.message);
             },
         });
     }

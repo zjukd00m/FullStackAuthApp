@@ -22,10 +22,11 @@ export function authReducer(
 
     switch (type) {
         case "SET_USER": {
+            const { user } = payload;
             return {
                 ...state,
                 isAuthenticated: true,
-                user: payload.user,
+                user,
             };
         }
         case "RESET_USER": {
@@ -36,6 +37,12 @@ export function authReducer(
                 ...state,
                 error: payload.error,
             };
+        }
+        case "SET_IS_AUTHENTICATED": {
+            return {
+                ...state,
+                isAuthenticated: true,
+            }
         }
         default: {
             return state;

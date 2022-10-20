@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../../context/auth/AuthHook";
-import { AuthUser } from "../../context/auth/types";
 import "./styles.css";
 
 interface DropdownMenuProps {
@@ -25,13 +24,9 @@ function DropdownMenu(props: DropdownMenuProps) {
 }
 
 
-interface NavbarProps {
-    user: AuthUser;
-}
-
-export default function Navbar({ user }: NavbarProps) {
+export default function Navbar() {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const { signOut } = useAuth();
+    const { user, signOut } = useAuth();
 
     const profileMenu = [
         {
@@ -57,6 +52,10 @@ export default function Navbar({ user }: NavbarProps) {
 
     function handleProfileClick() {
         setShowProfileMenu(!showProfileMenu);
+    }
+
+    if (!user?.id) {
+        return null;
     }
 
     return (

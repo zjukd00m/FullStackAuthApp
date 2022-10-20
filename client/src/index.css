@@ -12,6 +12,7 @@
 
 body {
     margin: 0;
+    height: 100vh;
 }
 
 code {
@@ -35,6 +36,8 @@ code {
     border: none;
     padding: 0.5rem 1rem;
     text-transform: uppercase;
+    cursor: pointer;
+    color: white;
 }
 
 .btn-primary {
@@ -67,4 +70,15 @@ code {
 .link-element {
     text-decoration: none;
     color: white;
+}
+
+.link-btn {
+    display: block;
+    text-decoration: none;
+    color: black;
+    background-color: transparent; 
+    width: 100px;
+    padding: 0.3rem 0.7rem;
+    border-bottom: 1px solid #282a36;
+    margin: 0.4rem 0;
 }

@@ -2,10 +2,7 @@
     display: grid;
     grid-template-columns: 70% 30%;
     align-items: flex-start;
-    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
-    max-width: 60vw;
     height: 100%;
-    margin: auto auto;
     padding: 3rem; 
     gap: 1rem;
     position: relative;
@@ -51,8 +48,26 @@
 
 .card-form-img {
     border-radius: 50%;
-    border: 2px solid #bd93f9;
     margin: 1rem auto;
+}
+
+.card-form-img-input {
+    color: transparent;
+}
+
+.card-form-img-input::-webkit-file-upload-button {
+    visibility: hidden;
+}
+
+.card-form-img-input::before {
+    content: "Edit";
+    display: inline-block;
+    border: 1px solid black;
+    padding: 0.3rem 1rem;
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+    color: black;
 }
 
 .input-with-icon {

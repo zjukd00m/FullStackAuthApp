@@ -1,37 +1,31 @@
 import { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import Navbar from "./components/Navbar";
 import useAuth from "./context/auth/AuthHook";
 import Home from "./views/Home";
 import Profile from "./views/Profile";
 import SignIn from "./views/SignIn";
 import SignUp from "./views/SignUp";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  const { user, getProfile } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-      ;(async () => {
-          await getProfile({
-              onHTTPSuccess: (data) => {
-                  console.log("The user profile in home");
-                  console.log(data);
-              },
-              onHTTPError: (status) => {
-                  if (status === 403) {
-                      window.location.href = "/signin"
-                  }
-              },
-              onHTTPNetworkError: (e) => {
-                  alert(e.message);
-              }
-          });
-      })()
+    if (!user) window.location.href = "/signin"
   }, []);
 
   return (
     <>
-      { user.id && <Navbar user={user} /> }
+      <Navbar />
+      <ToastContainer 
+        position="bottom-left" 
+        closeOnClick
+        hideProgressBar
+        draggable={false}
+        theme="light"
+      />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
