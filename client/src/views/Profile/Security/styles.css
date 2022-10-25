@@ -1,0 +1,19 @@
+.profile-security-title {
+    font-size: 26px;
+}
+
+.profile-security-box {
+    border: 1px solid black;
+}
+
+.profile-s-b-element {
+    padding: 1rem;
+}
+
+.active-option {
+    background-color: #A3BE8C;
+}
+
+.inactive-option {
+    background-color: #EBCB8B;
+}

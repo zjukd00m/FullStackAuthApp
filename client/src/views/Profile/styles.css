@@ -83,5 +83,6 @@
 
 .user-card-btn {
     position: absolute;
-    bottom: 0;
+    bottom: -3rem;
+    left: 0;
 }
