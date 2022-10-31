@@ -8,7 +8,7 @@ def generate_random_code(length: int):
     if length <= 0:
         raise ValueError("The code length must be greater than 0")
     return secrets.token_urlsafe(length)
-    
+
 
 def add_expiration_time(seconds: int, time: Optional[datetime] = None):
     """
@@ -19,7 +19,7 @@ def add_expiration_time(seconds: int, time: Optional[datetime] = None):
         raise ValueError("Timestamp must be in miliseconds")
     if not time:
         time = datetime.now()
-    
+
     expired_time = time + timedelta(seconds=seconds)
 
     return expired_time
@@ -41,8 +41,8 @@ def validate_token(token: str):
 
     time_diff = exp_time.timestamp() - current_time.timestamp()
 
-    print(F"The time difference is: {time_diff}")
-    
+    print(f"The time difference is: {time_diff}")
+
     if time_diff <= 0:
         return False
 

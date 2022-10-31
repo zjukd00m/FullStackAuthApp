@@ -9,9 +9,10 @@ from src.settings import HTML_TEMPLATES_DIR
 from src.services.mailing import send_email
 from src.utils.tokens import add_expiration_time, generate_random_code, validate_token
 from ...models import Group, Token, User
-from .schema import UserSignIn, UserSignUp
+from .schema import UserSignIn, UserSignUp, UserChangePassword
 from ...utils.db import engine
 from ...utils.auth import encode_payload, hash_password, verify_password
+
 
 
 route = APIRouter()
@@ -156,16 +157,16 @@ def sign_out(request: Request):
 
 
 @route.get("/confirm/")
-def confirm_email(token: str, request: Request):
+def confirm_email(code: str, request: Request):
     with Session(engine) as sess:
-        query = select(Token, User).where(Token.token == token)
-        _token = sess.exec(query).first()
+        query = select(Token, User).where(Token.token == code)
+        data = sess.exec(query).first()
 
-        if not _token or not len(_token) == 2:
+        if not data or not len(data) == 2:
             raise HTTPException(404, "auth-confirm.token-not-found")
 
-        token: Token = _token[0]
-        user: User = _token[1]
+        token: Token = data[0]
+        user: User = data[1]
 
         if not token.is_valid():
             raise HTTPException(403, "auth-confirm.token-expired")
@@ -208,3 +209,34 @@ def get_profile(request: Request):
         del user["password"]
 
         return {**user, "groups": groups}
+
+
+@route.post("/password/change")
+@requires(["authenticated"])
+def change_password(userData: UserChangePassword, request: Request):
+    user_id = request.user.id
+    current_password = userData.current_password
+    new_password = userData.new_password
+    confirm_password = userData.confirm_password
+
+    if new_password != confirm_password:
+        raise HTTPException(400, "Passwords does not match")
+
+    with Session(engine) as sess:
+        query = select(User).where(User.id == user_id)
+        user: User = sess.exec(query).first()
+        
+        if not user:
+            raise HTTPException(404, "user.not-found")
+
+        if not verify_password(current_password, user.password):
+            raise HTTPException(400, "user.password-mismatch")
+
+        user.password = hash_password(new_password)
+
+        sess.add(user)
+        sess.commit()
+        
+        return {
+            "message": "Password changed successfully"
+        }

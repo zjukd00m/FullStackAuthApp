@@ -47,3 +47,9 @@ class UserSignUp(BaseModel):
 class UserSignIn(BaseModel):
     email: str
     password: str
+
+
+class UserChangePassword(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str

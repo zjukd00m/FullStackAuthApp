@@ -1,11 +1,13 @@
 import json
 import requests
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 from ..settings import RAPID_API_HOST_SEND_GRID, RAPID_API_KEY_SEND_GRID
 
 
 HTML_TEMPLATES = [
     "EMAIL_CONFIRMATION",
+    "AUTHENTICATION_TOKEN",
+    "RESET_PASSWORD"
 ]
 
 JSON_HEADERS = {
@@ -70,7 +72,7 @@ def get_email_confirmation_template(args: Dict):
 
 def send_email(
     subject: str,
-    template: str,
+    template: Literal["EMAIL_CONFIRMATION", "AUTHENTICATION_TOKEN", "RESET_PASSWORD"],
     to: List[str],
     attachments: Optional[List[str]] = [],
     args: Dict = {},
@@ -97,6 +99,27 @@ def send_email(
                 "confirm_url": confirm_url,
             }
         )
+    
+    elif template == "AUTHENTICATION_TOKEN":
+        token = args.get("token")
+
+        if not token:
+            raise ValueError("The token must be provided in the args")
+
+        html = F"""
+        <body>
+            <div>
+                <p> This is the auth code </p>
+                <p 
+                style="
+                    font-size: 22px; 
+                "> {token} </p>
+            </div>
+        </body>
+        """
+
+    elif template == "RESET_PASSWORD":
+        pass
 
     sgrid_client = SendGridClient()
 

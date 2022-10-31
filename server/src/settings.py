@@ -7,6 +7,8 @@ dotenv_path = path.join(BASE_DIR, ".env.development")
 
 dotenv.load_dotenv(dotenv_path)
 
+TOKEN_EXPIRATION_TIME = 60 * 3
+
 POSTGRES_HOST = getenv("POSTGRES_HOST")
 POSTGRES_PASSWORD = getenv("POSTGRES_PASSWORD")
 POSTGRES_DB = getenv("POSTGRES_DB")
