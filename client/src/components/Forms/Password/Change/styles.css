@@ -1,0 +1,24 @@
+.input-icon {
+    position: absolute !important;
+    right: 0 !important;
+    padding: 0.5rem !important;
+}
+
+.input-group-with-icon > input {
+    background-color: var(--bg-form-light);
+    width: 100%;
+    outline: none;
+    border: none;
+    padding: 0.6rem 0 0.6rem 2.5rem;
+    box-sizing: border-box;
+    position: relative;
+    margin: 0.3rem 0;
+}
+
+.text-error {
+    font-size: 14px !important;
+}
+
+.change-password-form-element {
+    margin-top: 1rem;
+}

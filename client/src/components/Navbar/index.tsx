@@ -59,7 +59,7 @@ export default function Navbar() {
     }
 
     return (
-        <div className="navigation-wrapper">
+        <div className="navigation-container">
             <nav className="navigation">
                 <div className="nav-header">
                     <p className="nav-title"> Admin Dashboard </p>

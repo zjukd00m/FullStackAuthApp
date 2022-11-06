@@ -27,6 +27,7 @@ export class UserService {
             const r = await fetch(url, {
                 method: "get",
                 headers: headers,
+                credentials: "include"
             });
 
             const data = await r.json();

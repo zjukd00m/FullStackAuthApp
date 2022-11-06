@@ -9,12 +9,17 @@
 
 .table-search {
     width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
 }
 
 .search-input {
     box-sizing: border-box;
     width: 100%;
     padding: 0.3rem 0.5rem;
+    border: none;
+    outline: none;
 }
 
 .table-wrapper {
@@ -41,6 +46,8 @@
 .header-element {
     text-transform: uppercase;
     text-align: left;
+    font-size: 14px;
+    text-align: center;
 }
 
 .table-body {

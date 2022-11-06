@@ -22,7 +22,7 @@ export interface AuthUserEdit {
     active: boolean;
     phone_number?: string;
     display_name?: string;
-    avatar: string;
+    avatar?: string;
     groups?: UserGroups;
 }
 

@@ -1,5 +1,5 @@
-.navigation-wrapper {
-    background-color: #2e3440;
+.navigation-container {
+    background-color: var(--bg-dark-primary);
 }
 
 .navigation {

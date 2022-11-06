@@ -8,3 +8,7 @@ export interface ServiceRequestCallbacks {
     onHTTPError: (status: number, data: any) => void;
     onHTTPNetworkError: (e: Error) => void;
 }
+
+export enum EmailService {
+    ACCOUNT_CONFIRMATION = "ACCOUNT_CONFIRMATION",
+}

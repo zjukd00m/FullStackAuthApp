@@ -70,20 +70,29 @@ export default function UsersTable() {
                     placeholder="Search by email, phone number or name"
                     onChange={handleSearchUsers}
                 />
+                <div className="dropdown">
+                    <button className="btn btn-primary btn-xs text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        Options
+                    </button> 
+                    <ul className="dropdown-menu">
+                        <li> <button className="dropdown-item btn-sm" onClick={() => setShowAddUserModal(true)}> Add user </button></li>
+                    </ul>
+                </div>
             </div>
             <div className="table-wrapper">
-                <table className="table-element" style={users?.length ? {} : { height: "100%" } }>
+                <table className="table-element" style={{ height: "100%" } }>
                     <thead className="table-header">
                         <tr className="header-row">
                             <th className="header-element"> ID </th>
                             <th className="header-element"> Avatar </th>
                             <th className="header-element"> Email </th>
-                            <th className="header-element"> Phone Number </th>
+                            <th className="header-element"> Name </th>
+                            <th className="header-element"> Phone </th>
                             <th className="header-element"> Confirmed </th>
                             <th className="header-element"> Active </th>
                             <th className="header-element"> Created At </th>
                             <th className="header-element"> Last Sign In </th>
-                            <th className="header-element"> Display Name </th>
+                            <th className="header-element"> Edit </th>
                             <th className="header-element"> Delete </th>
                         </tr>
                     </thead>
@@ -105,13 +114,32 @@ export default function UsersTable() {
                                         </td>
                                         <td className="body-cell">{user.email}</td>
                                         <td className="body-cell">
-                                            {user.phone_number}
+                                            {
+                                                user.display_name?.length
+                                                ? user.display_name 
+                                                : <i className="fa-solid fa-circle-exclamation fa-lg icon-warning"></i>
+                                            }
                                         </td>
                                         <td className="body-cell">
-                                            {user.confirmed ? "T" : "F"}
+                                            {
+                                                user.phone_number?.length
+                                                ? user.phone_number
+                                                : <i className="fa-solid fa-circle-exclamation fa-lg icon-warning"></i>
+                                            }
                                         </td>
                                         <td className="body-cell">
-                                            {user.active ? "T" : "F"}
+                                            {
+                                                user.confirmed 
+                                                ? <i className="fa-solid fa-check fa-xl icon-success"></i> 
+                                                : <i className="fa-solid fa-circle-xmark fa-xl icon-danger"></i>
+                                            }
+                                        </td>
+                                        <td className="body-cell">
+                                            {
+                                                user.active 
+                                                ? <i className="fa-solid fa-check fa-xl icon-success"></i> 
+                                                : <i className="fa-solid fa-circle-xmark fa-xl icon-danger"></i>
+                                            }
                                         </td>
                                         <td className="body-cell">
                                             {new Date(
@@ -126,15 +154,25 @@ export default function UsersTable() {
                                                 : null}
                                         </td>
                                         <td className="body-cell">
-                                            {user.display_name}
+                                            <button
+                                                className="btn text-bg-primary text-white"
+                                                style={{ fontSize: "12px" }}
+                                                onClick={() => {
+                                                    window.location.href = `/profile/${user.id}`;
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
                                         </td>
                                         <td className="body-cell">
                                             <button
-                                                className="btn bg-error"
+                                                className="btn btn-danger text-white"
                                                 style={{ fontSize: "12px" }}
-                                                onClick={() =>
-                                                    handleDeleteUser(user.id)
-                                                }
+                                                onClick={() => {
+                                                    if(window.confirm("Are you sure?")) {
+                                                        handleDeleteUser(user.id)
+                                                    }
+                                                }}
                                             >
                                                 Delete
                                             </button>
@@ -151,7 +189,7 @@ export default function UsersTable() {
                                                 height={150}
                                             />
                                             <p> No user data </p>
-                                            <button className="btn btn-primary" onClick={() => setShowAddUserModal(true)}>
+                                            <button className="btn text-bg-primary text-white" onClick={() => setShowAddUserModal(true)}>
                                                 Add user
                                             </button>
                                         </div>
@@ -159,7 +197,6 @@ export default function UsersTable() {
                                 </tr>
                             )}
                     </tbody>
-                    { users.length && <GrAdd className="add-user-icon" onClick={() => setShowAddUserModal(true) } /> }
                 </table>
             </div>
         </div>

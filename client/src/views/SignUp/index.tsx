@@ -49,7 +49,10 @@ export default function SignUp() {
             email,
             password,
             onHTTPSuccess: () => {
-                window.location.href = "/signin";
+                toast.success("Your account was created");
+                setTimeout(() => {
+                    window.location.href = "/signin";
+                }, 1000);
             },
             onHTTPError: (_, data) => {
                 toast.error(data.detail);
@@ -112,47 +115,47 @@ export default function SignUp() {
         <div className="view">
             <div className="form-wrapper">
                 <form className="signup-form" onSubmit={handleSubmit}>
-                    <p className="form-title"> Signup </p>
+                    <p className="fs-2"> Signup </p>
                     <div className="form-element">
-                        <label> Email </label>
-                        <div className="form-input-group">
+                        <label className="form-label my-1"> Email </label>
+                        <div className="d-flex align-items-center position-relative">
                             <input
                                 value={email}
                                 onChange={(e) => handleEmailChange(e)}
                                 type="text"
-                                className="form-input"
+                                className="form-control ps-5"
                                 placeholder="tyler@durden.com"
                             />
-                            <MdOutlineEmail className="input-icon" />
+                            <i className="fa-solid fa-envelope fa-lg position-absolute p-3"/>
                         </div>
                         {errors.email && (
-                            <p className="input-error"> {errors.email} </p>
+                            <p className="form-text text-danger my-2"> {errors.email} </p>
                         )}
                     </div>
                     <div className="form-element">
-                        <label> Password </label>
-                        <div className="form-input-group">
+                        <label className="form-label my-1"> Password </label>
+                        <div className="d-flex align-items-center position-relative">
                             <input
                                 value={password}
                                 onChange={handlePasswordChange}
                                 type={isPasswordVisible ? "text" : "password"}
-                                className="form-input"
+                                className="form-control ps-5"
                                 placeholder="At least 8 characters"
                             />
                             {!isPasswordVisible ? (
-                                <AiOutlineEye
-                                    className="input-icon"
+                                <i
+                                    className="fa-solid fa-eye fa-lg position-absolute p-3"
                                     onClick={() => setIsPasswordVisible(true)}
-                                />
+                                ></i>
                             ) : (
-                                <AiOutlineEyeInvisible
-                                    className="input-icon"
+                                <i
+                                    className="fa-solid fa-eye-slash fa-lg position-absolute p-3"
                                     onClick={() => setIsPasswordVisible(false)}
-                                />
+                                ></i>
                             )}
                         </div>
                         {errors.password && (
-                            <p className="input-error"> {errors.password} </p>
+                            <p className="form-text text-danger my-2"> {errors.password} </p>
                         )}
                         <p style={{ fontSize: "13px", marginTop: "2rem" }}>
                             Password strength: {passwordStrength}

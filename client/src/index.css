@@ -1,13 +1,16 @@
 @import url("https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 :root {
     --main-theme-cta:#81a1c1;
     --bg-error: #BF616A;
     --bg-form-light: #e5e9f0;
+    --text-color-error: #bf616a;
+    --bg-dark-primary: #2E3440;
 }
 
 * {
-    font-family: "Raleway", sans-serif;
+    font-family: "Roboto", sans-serif;
 }
 
 body {
@@ -25,32 +28,48 @@ code {
     background-color: white;
 }
 
-.bg-error {
-    background-color: var(--bg-error);
+.text-error {
+    color: var(--text-color-error);
 }
 
-/* Button Component */
-.btn {
-    font-size: 14px;
-    font-weight: 600;
-    border: none;
-    padding: 0.5rem 1rem;
-    text-transform: uppercase;
-    cursor: pointer;
-    color: white;
+.input-group-with-icon {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    align-items: center;
 }
 
-.btn-primary {
-    background-color: var(--main-theme-cta);
+.icon-primary {
+    color: var(--bs-primary);
 }
 
-.btn-small {
-    padding: 0.3rem 0.7rem;
-    font-size: 12px;
+.icon-warning {
+    color: var(--bs-warning);
 }
 
-.btn:hover {
-    opacity: 90%;
+.icon-danger {
+    color: var(--bs-danger);
+}
+
+.icon-success {
+    color: var(--bs-success);
+}
+
+.icon-add {
+    background-color: var(--bs-primary);
+    border-radius: 100%;
+    padding: 0.7em;
+    transition: scale ease 0.5s;
+    position: absolute;
+    top: 75px;
+}
+
+.icon-add:hover {
+    scale: 1.1;
+}
+
+.bg-sec {
+    background-color: #144fb6;
 }
 
 .btn-group-v {

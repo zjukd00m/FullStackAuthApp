@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { MdOutlineEmail } from "react-icons/md";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { toast } from "react-toastify";
 import useAuth from "../../context/auth/AuthHook";
 import "./styles.css";
@@ -51,7 +49,7 @@ export default function SignIn() {
         await signIn({
             email,
             password,
-            onHTTPSuccess: async () => {
+            onHTTPSuccess: () => {
                 window.location.href = "/";
             },
             onHTTPError: (_, data) => {
@@ -114,48 +112,48 @@ export default function SignIn() {
         <div className="view">
             <div className="form-wrapper">
                 <form className="signup-form" onSubmit={handleSubmit}>
-                    <p className="form-title"> Signin </p>
-                    <div className="form-element">
-                        <label> Email </label>
-                        <div className="form-input-group">
+                    <p className="fs-2"> Signin </p>
+                    <div className="form-element my-5">
+                        <label className="form-label my-1"> Email </label>
+                        <div className="d-flex position-relative align-items-center">
                             <input
                                 value={email}
                                 onChange={(e) => handleEmailChange(e)}
                                 type="text"
-                                className="form-input"
+                                className="form-control ps-5 bg-input-light"
                             />
-                            <MdOutlineEmail className="input-icon" />
+                            <i className="fa-solid fa-envelope fa-lg position-absolute p-3"></i>
                         </div>
                         {errors.email && (
-                            <p className="input-error"> {errors.email} </p>
+                            <p className="form-text text-danger my-2"> {errors.email} </p>
                         )}
                     </div>
-                    <div className="form-element">
-                        <label> Password </label>
-                        <div className="form-input-group">
+                    <div className="form-element my-5">
+                        <label className="form-label my-1"> Password </label>
+                        <div className="d-flex position-relative align-items-center">
                             <input
                                 value={password}
                                 onChange={handlePasswordChange}
                                 type={isPasswordVisible ? "text" : "password"}
-                                className="form-input"
+                                className="form-control ps-5 outline-none"
                             />
                             {!isPasswordVisible ? (
-                                <AiOutlineEye
-                                    className="input-icon"
+                                <i
+                                    className="fa-solid fa-eye fa-lg position-absolute ps-3"
                                     onClick={() => setIsPasswordVisible(true)}
-                                />
+                                ></i>
                             ) : (
-                                <AiOutlineEyeInvisible
-                                    className="input-icon"
+                                <i
+                                    className="fa-solid fa-eye-slash fa-lg position-absolute ps-3"
                                     onClick={() => setIsPasswordVisible(false)}
-                                />
+                                ></i>
                             )}
                         </div>
                         {errors.email && (
-                            <p className="input-error"> {errors.password} </p>
+                            <p className="form-text text-danger my-2"> {errors.password} </p>
                         )}
                     </div>
-                    <button className="submit-button">Sign In</button>
+                    <button className="btn btn-primary btn-sm w-100 text-white">Sign In</button>
                     <div className="form-footer">
                         <p> Don't have an account yet ? </p>
                         <a href="/signup" className="form-link">

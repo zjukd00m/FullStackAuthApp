@@ -6,7 +6,10 @@
     padding: 3rem; 
     gap: 1rem;
     position: relative;
+    font-size: 14px;
 }
+
+/* .profile-details-container {} */
 
 .card-form {
     display: flex;
@@ -19,7 +22,8 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    margin: 0.5rem 0;
+    justify-content: center;
+    align-items: left;
 }
 
 .card-form-input-group {
@@ -53,6 +57,7 @@
 
 .card-form-img-input {
     color: transparent;
+    margin: 1rem 0;
 }
 
 .card-form-img-input::-webkit-file-upload-button {
@@ -60,14 +65,14 @@
 }
 
 .card-form-img-input::before {
-    content: "Edit";
+    content: "Change avatar";
     display: inline-block;
-    border: 1px solid black;
     padding: 0.3rem 1rem;
     outline: none;
     cursor: pointer;
     user-select: none;
     color: black;
+    border: 1px solid var(--bg-dark-primary);
 }
 
 .input-with-icon {

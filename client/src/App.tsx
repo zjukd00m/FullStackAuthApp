@@ -21,7 +21,7 @@ function App() {
   return (
     <>
       <ToastContainer 
-        position="bottom-left" 
+        position="bottom-right" 
         closeOnClick
         hideProgressBar
         draggable={false}

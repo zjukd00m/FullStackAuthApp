@@ -1,0 +1,19 @@
+// The rest of the code wouldn't be able to use the new values we set in here
+$primary: #D08770;
+$secondary: #E5E9F0;
+$danger: #BF616A;
+$warning: #EBCB8B;
+$success: #A3BE8C;
+
+// Import functions and variables
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+
+$custom-theme-colors: (
+    "bg-dark": "#2E3440",
+    "input-light": "#E5E9F0"
+);
+
+$theme-colors: map-merge($custom-theme-colors, $theme-colors);
+
+@import "../node_modules/bootstrap/scss/bootstrap";
