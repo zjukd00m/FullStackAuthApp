@@ -5,10 +5,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.authentication import AuthenticationMiddleware
 from sqlmodel import SQLModel
-from .utils.db import engine
+from .utils.db import engine, init_db
 from .middleware.auth import JWTMiddleware
 from .middleware.shield import ShieldMiddleware
-from .routes import auth, token, user
+from .routes import auth, token, user, mailing
 from .settings import HTML_TEMPLATES_DIR, STATIC_FILES_DIR
 
 
@@ -42,11 +42,13 @@ app.include_router(token.route, prefix="/api/tokens", tags=["tokens"])
 
 app.include_router(user.route, prefix="/api/users", tags=["users"])
 
+app.include_router(mailing.route, prefix="/api/mailing", tags=["mailing"])
 
 @app.on_event("startup")
-def init_db():
+def init_app():
     print("The app started")
     try:
+        init_db()
         SQLModel.metadata.create_all(engine)
     except Exception as e:
         print(e.__str__())

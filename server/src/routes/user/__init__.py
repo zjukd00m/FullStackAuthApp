@@ -2,8 +2,9 @@ import io
 import csv
 from typing import List, Union, Optional
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile, Request
 from fastapi.encoders import jsonable_encoder
+from starlette.authentication import requires
 from sqlmodel import Session, select
 from src.models import Token, User
 from src.utils.db import engine
@@ -13,9 +14,9 @@ route = APIRouter()
 
 
 class UserEditInput(BaseModel):
-    active: bool
-    phone_number: str
-    display_name: str
+    active: Optional[bool]
+    phone_number: Optional[str]
+    display_name: Optional[str]
     avatar: Optional[str]
 
 
@@ -58,9 +59,11 @@ async def add_users(users_file: UploadFile):
 
 
 @route.get("/")
-def get_users(query: Union[str, None] = None):
+@requires(["authenticated"])
+def get_users(request: Request, query: Union[str, None] = None):
+    user = request.user
     with Session(engine) as sess:
-        _query = select(User)
+        _query = select(User).where(User.id != user.id)
 
         parsed_users = []
 
@@ -147,15 +150,15 @@ def edit_user(user_id: int, user_data: UserEditInput):
             user.active = user_data.active
             edit_user = True
 
-        if user_data.avatar != user.avatar:
+        if user_data.avatar != None and user_data.avatar != user.avatar:
             user.avatar = user_data.avatar
             edit_user = True
 
-        if user_data.display_name != user.display_name:
+        if user_data.display_name != None and user_data.display_name != user.display_name:
             user.display_name = user_data.display_name
             edit_user = True
 
-        if user_data.phone_number != user.phone_number:
+        if user_data.phone_number and user_data.phone_number != user.phone_number:
             user.phone_number = user_data.phone_number
             edit_user = True
 

@@ -7,7 +7,7 @@ from starlette.authentication import requires
 from sqlmodel import Session, select
 from src.settings import HTML_TEMPLATES_DIR
 from src.services.mailing import send_email
-from src.utils.tokens import add_expiration_time, generate_random_code, validate_token
+from src.utils.tokens import add_expiration_time, generate_random_code
 from ...models import Group, Token, User
 from .schema import UserSignIn, UserSignUp, UserChangePassword
 from ...utils.db import engine
@@ -51,9 +51,6 @@ def signup(_user: UserSignUp):
 
         # Add the user to the given groups
         user_groups_db: List[Group] = []
-
-        print("-" * 20)
-        print("WILL FIND THE USER ROLES")
 
         if "OTHER" in _user.groups:
             query = select(Group).where(Group.name == "OTHER")
@@ -156,25 +153,34 @@ def sign_out(request: Request):
     return response
 
 
-@route.get("/confirm/")
-def confirm_email(code: str, request: Request):
+@route.get("/confirm")
+def confirm_email(token: str, request: Request):
     with Session(engine) as sess:
-        query = select(Token, User).where(Token.token == code)
+        query = select(Token, User).where(Token.token == token)
         data = sess.exec(query).first()
+
+        users = sess.exec(query).all()
+
+        for _user in users:
+            print(_user)
 
         if not data or not len(data) == 2:
             raise HTTPException(404, "auth-confirm.token-not-found")
 
-        token: Token = data[0]
+        _token: Token = data[0]
         user: User = data[1]
 
-        if not token.is_valid():
+        if not _token.is_valid():
             raise HTTPException(403, "auth-confirm.token-expired")
 
         user.confirmed = True
 
+        print(user)
+        print(_token.is_valid())
+
         sess.add(user)
-        sess.delete(token)
+        # sess.delete(_token)
+
         sess.commit()
 
     return templates.TemplateResponse("email-confirmed.html", {"request": request})
