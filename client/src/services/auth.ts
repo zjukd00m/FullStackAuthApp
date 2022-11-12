@@ -41,3 +41,30 @@ export async function changePassword(data: EditUserData, {
     }
 }
 
+/**
+ * Delete the account of the user that's making the request
+ * using the http only cookies to store the jwt
+ */
+export async function deleteUserAccount({
+    onHTTPSuccess,
+    onHTTPError,
+    onHTTPNetworkError,
+}: ServiceRequestCallbacks) {
+    const url = `${BASE_URL}/profile`;
+    try {
+        const r = await fetch(url, {
+            method: "DELETE",
+            credentials: "include",
+        });
+
+        const data = await r.json();
+
+        if (r.ok) {
+            onHTTPSuccess(data);
+        } else {
+            onHTTPError(r.status, data);
+        }
+    } catch (e: any) {
+        onHTTPNetworkError(e);
+    }
+}

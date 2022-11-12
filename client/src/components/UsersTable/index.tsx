@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { GrAdd } from "react-icons/gr";
 import { userService } from "../../services/users";
 import { AuthUser } from "../../context/auth/types";
-import AddUserModal from "../Modals/AddUserModal";
+import AddUserForm from "../Forms/User/AddUserForm";
 import "./styles.css";
 
 
@@ -39,6 +38,7 @@ export default function UsersTable() {
         await userService.deleteUser(userId, {
             onHTTPSuccess: (data) => {
                 console.log(data);
+                setShowAddUserModal(false);
                 setUsers((prevUsers) => prevUsers.filter(({ id }) => id !== userId));
             },
             onHTTPError: (status, data) => {
@@ -53,17 +53,6 @@ export default function UsersTable() {
 
     return (
         <div className="data-table">
-            { 
-                showAddUserModal && (
-                    <AddUserModal
-                        onSuccess={(data) => {
-                            setShowAddUserModal(false);
-                            setUsers((prevUsers) => ([ ...prevUsers, data ]))
-                        }} 
-                        onButtonCancel={() => setShowAddUserModal(false)}  
-                    /> 
-                )
-            } 
             <div className="table-search">
                 <input
                     className="search-input"
@@ -71,9 +60,9 @@ export default function UsersTable() {
                     onChange={handleSearchUsers}
                 />
                 <div className="dropdown">
-                    <button className="btn btn-primary btn-xs text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button className="btn btn-secondary btn-xs text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                         Options
-                    </button> 
+                    </button>
                     <ul className="dropdown-menu">
                         <li> <button className="dropdown-item btn-sm" onClick={() => setShowAddUserModal(true)}> Add user </button></li>
                     </ul>
@@ -97,9 +86,24 @@ export default function UsersTable() {
                         </tr>
                     </thead>
                     <tbody className="table-body">
+                            <tr>
+                            {
+                                showAddUserModal ? (
+                                    <div className="position-absolute w-100">
+                                        <AddUserForm 
+                                            onSuccess={(data) => {
+                                                setShowAddUserModal(false);
+                                                setUsers((prevUsers) => ([...prevUsers, data]));
+                                            }} 
+                                            onCancel={() => setShowAddUserModal(false)}
+                                        />
+                                    </div>
+                                ) : null
+                            }
+                            </tr>
                             {users?.length ? (
                                 users.map((user, index) => (
-                                    <tr key={index} className="body-row">
+                                    <tr key={index} className="body-row" style={{ backgroundColor: "red !important" }}>
                                         <td className="body-cell"> {user.id} </td>
                                         <td className="body-cell">
                                             <img
@@ -189,7 +193,7 @@ export default function UsersTable() {
                                                 height={150}
                                             />
                                             <p> No user data </p>
-                                            <button className="btn text-bg-primary text-white" onClick={() => setShowAddUserModal(true)}>
+                                            <button className="btn btn-primary text-white" onClick={() => setShowAddUserModal(true)}>
                                                 Add user
                                             </button>
                                         </div>

@@ -42,13 +42,14 @@
     margin-top: 1rem;
     padding: 0;
     border-radius: 0.7rem;
-    z-index: 999;
+    z-index: 9999999;
 }
 
 .dropdown-element {
     padding: 0.1rem 1rem;
     color: white;
     font-weight: 500;
+    box-sizing: border-box;
 }
 
 .dropdown-element:nth-child(odd) {

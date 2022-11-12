@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { changePassword } from "../../../../services/auth";
 import { validatePassword } from "../../../../utils/validators";
 import "./styles.css";
 
+interface ChangePasswordFormProps {
+    onSuccessCall: () => void;
+}
 
-
-export default function ChangePasswordForm() {
+export default function ChangePasswordForm(props: ChangePasswordFormProps) {
+    const { onSuccessCall } = props;
     const [currentPasswd, setCurrentPasswd] = useState("");
     const [newPasswd, setNewPasswd] = useState("");
     const [confirmPasswd, setConfirmPasswd] = useState("");
@@ -18,7 +20,7 @@ export default function ChangePasswordForm() {
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-    })
+    });
 
     const setError = (
         field: "currentPassword" | "newPassword" | "confirmPassword",
@@ -105,6 +107,7 @@ export default function ChangePasswordForm() {
         }, {
             onHTTPSuccess: () => {
                 toast.success("The password was changed");
+                onSuccessCall();
             },
             onHTTPError: (_, data) => {
                 toast.error(data.detail);
@@ -128,12 +131,12 @@ export default function ChangePasswordForm() {
                     />
                     {!isCurrentPasswordVisible ? (
                             <i
-                                className="fa-regular fa-eye fa-lg position-absolute p-2"
+                                className="fa-solid fa-solid fa-eye fa-lg position-absolute p-2"
                                 onClick={() => setIsCurrentPasswordVisible(true)}
                             ></i>
                     ) : (
                         <i
-                            className="fa-regular fa-eye-slash fa-lg position-absolute p-2"
+                            className="fa-solid fa-eye-slash fa-lg position-absolute p-2"
                             onClick={() => setIsCurrentPasswordVisible(false)}
                         ></i>
                     )}
@@ -150,12 +153,12 @@ export default function ChangePasswordForm() {
                     />
                     {!isNewPasswordVisible ? (
                             <i
-                                className="fa-regular fa-eye fa-lg position-absolute p-2"
+                                className="fa-solid fa-eye fa-lg position-absolute p-2"
                                 onClick={() => setIsNewPasswordVisible(true)}
                             ></i>
                     ) : (
                         <i
-                            className="fa-regular fa-eye-slash fa-lg position-absolute p-2"
+                            className="fa-solid fa-eye-slash fa-lg position-absolute p-2"
                             onClick={() => setIsNewPasswordVisible(false)}
                         ></i>
                     )}
@@ -172,12 +175,12 @@ export default function ChangePasswordForm() {
                     />
                     {!isConfirmPasswordVisible ? (
                             <i
-                                className="fa-regular fa-eye fa-lg position-absolute p-2"
+                                className="fa-solid fa-eye fa-lg position-absolute p-2"
                                 onClick={() => setIsConfirmPasswordVisible(true)}
                             ></i>
                     ) : (
                         <i
-                            className="fa-regular fa-eye-slash fa-lg position-absolute p-2"
+                            className="fa-solid fa-eye-slash fa-lg position-absolute p-2"
                             onClick={() => setIsConfirmPasswordVisible(false)}
                         ></i>
                     )}
