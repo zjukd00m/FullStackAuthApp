@@ -47,3 +47,14 @@ def validate_token(token: str):
         return False
 
     return True
+
+
+def generate_email_code() -> str:
+    """
+    Generate an unique random email code to be used in every email
+    template sent to the user.
+
+    Returns:
+        str: the unique random email code
+    """
+    return secrets.token_hex(10)

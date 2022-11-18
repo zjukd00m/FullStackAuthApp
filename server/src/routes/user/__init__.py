@@ -80,7 +80,7 @@ def get_users(request: Request, query: Union[str, None] = None):
                 display_name,
                 phone_number,
                 avatar
-            FROM public.user 
+            FROM users
             WHERE email ILIKE '{query}%' 
             ORDER BY email DESC; 
             """

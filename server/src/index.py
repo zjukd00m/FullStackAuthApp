@@ -48,8 +48,8 @@ app.include_router(mailing.route, prefix="/api/mailing", tags=["mailing"])
 def init_app():
     print("The app started")
     try:
-        init_db()
         SQLModel.metadata.create_all(engine)
+        init_db()
     except Exception as e:
         print(e.__str__())
         sys.exit(1)

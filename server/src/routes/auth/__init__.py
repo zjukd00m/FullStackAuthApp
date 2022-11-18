@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -7,13 +6,15 @@ from starlette.authentication import requires
 from sqlmodel import Session, select
 from src.settings import HTML_TEMPLATES_DIR
 from src.services.mailing import send_email
-from src.utils.tokens import add_expiration_time, generate_random_code
-from ...models import Group, Token, User
+from src.utils.tokens import (
+    add_expiration_time, 
+    generate_random_code, 
+    generate_email_code
+)
+from ...models import Group, Token, User, UserGroup, Settings
 from .schema import UserSignIn, UserSignUp, UserChangePassword
 from ...utils.db import engine
 from ...utils.auth import encode_payload, hash_password, verify_password
-
-
 
 route = APIRouter()
 
@@ -43,34 +44,43 @@ def signup(_user: UserSignUp):
         # Accessing an attribute of an object after commit triggers
         # sql statement to fetch the id of the record
         user_data = _user.dict()
-        user_groups = user_data.get("groups", ["OTHER"])
 
         del user_data["groups"]
 
         user = User(**user_data)
 
-        # Add the user to the given groups
-        user_groups_db: List[Group] = []
+        sess.add(user)
+        sess.commit()
+        sess.refresh(user)
 
+        # Create the user settings entity before commiting to the database
+        email_code = generate_email_code()
+        user_settings = Settings(
+            signin_code=False, 
+            email_code=email_code,
+            user_id=user.id,
+        )
+
+        sess.add(user_settings)
+
+        # Add the user to the given groups
         if "OTHER" in _user.groups:
             query = select(Group).where(Group.name == "OTHER")
             other_group: Group = sess.exec(query).first()
             if not other_group:
                 raise HTTPException(500, "Missing OTHER group at db")
-            user_groups_db.append(other_group)
+
+            # Create the user group row with OTHERS group
+            sess.add(UserGroup(user_id=user.id, group_id=other_group.id))
 
         if "ADMIN" in _user.groups:
             query = select(Group).where(Group.name == "ADMIN")
             admin_group: Group = sess.exec(query).first()
             if not admin_group:
                 raise HTTPException(500, "Missing ADMIN group at db")
-            user_groups_db.append(admin_group)
 
-        user.groups = user_groups_db
-
-        sess.add(user)
-        sess.commit()
-        sess.refresh(user)
+            # Create the user group row with ADMIN group
+            sess.add(UserGroup(user_id=user.id, group_id=admin_group.id))
 
         # Create a new token that expires 1 hour after the request is made
         _token = generate_random_code(32)
@@ -120,13 +130,37 @@ def signin(_user: UserSignIn):
         if not valid_password:
             raise HTTPException(400, "auth.invalid-user-or-password")
 
+        # Verify if the user has the sign in code enabled
+        query = select(Settings).where(Settings.user_id == user.id)
+        user_settings: Settings = sess.exec(query).first()
+
+        if user_settings.signin_code:
+            signin_code = _user.signin_code
+            if not signin_code or not len(signin_code):
+                raise HTTPException(422, "auth.missing-signin-code")
+
+            # Verify the signin code is valid
+            query = select(Token).where(Token.token == signin_code)
+            token: Token = sess.exec(query).first()
+
+            if not token:
+                raise HTTPException(404, "auth.token-not-found")
+
+            if not token.is_valid():
+                raise HTTPException(400, "auth.token-expired")
+
+            sess.delete(token)
+
+        # Get the user groups
+        query = select(UserGroup, Group).where(UserGroup.user_id == user.id)
+        user_groups = sess.exec(query).all()
+        user_groups = list(map(lambda user_group: user_group[1].name, user_groups))
+
         # Update the user's last_sign_in date
         user.last_sign_in = datetime.now()
         sess.add(user)
         sess.commit()
         sess.refresh(user)
-
-        user_groups = [group.name for group in user.groups]
 
         payload = {"id": user.id, "email": user.email, "groups": user_groups}
 
@@ -144,6 +178,7 @@ def signin(_user: UserSignIn):
 
 
 @route.post("/signout")
+@requires(["authenticated"])
 def sign_out(request: Request):
     response_content = {
         "message": "The user signed out successfully",
@@ -179,26 +214,38 @@ def confirm_email(token: str, request: Request):
         print(_token.is_valid())
 
         sess.add(user)
-        # sess.delete(_token)
+        sess.delete(_token)
 
         sess.commit()
 
     return templates.TemplateResponse("email-confirmed.html", {"request": request})
 
 
-@route.delete("/{user_id}")
-def delete_user(user_id: int):
-    with Session(engine) as sess:
-        query = select(User).where(User.id == user_id)
-        user = sess.exec(query).one()
+@route.delete("/profile")
+@requires(["authenticated"])
+def delete_profile(request: Request):
+    user_id = request.user.id
+    try:
+        with Session(engine) as sess:
+            query = select(User).where(User.id == user_id)
+            user = sess.exec(query).one()
 
-        if not user:
-            raise HTTPException(404, "user.not-found")
+            if not user:
+                raise HTTPException(404, "user.not-found")
 
-        sess.delete(user)
-        sess.commit()
+            sess.delete(user)
+            sess.commit()
 
-    return {"message": "user.deleted"}
+        response_content = {
+            "message": "The account was deleted successfully",
+        }
+        response = JSONResponse(content=response_content)
+
+        response.set_cookie(key="auth_key", value=None, httponly=True, max_age=0)
+
+        return {"message": "user.deleted"}
+    except Exception as e:
+        raise HTTPException(500, e.__str__())
 
 
 @route.get("/profile")

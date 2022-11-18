@@ -18,14 +18,15 @@ session = sessionmaker(engine, expire_on_commit=False)
 
 
 def init_db():
+
     with Session(engine) as sess:
         groups = sess.exec(select(Group)).all()
 
         if not len(groups):
             admin_group = Group(name="ADMIN")
-            others_group = Group(name="OTHERS")
+            other_group = Group(name="OTHER")
 
             sess.add(admin_group)
-            sess.add(others_group)
+            sess.add(other_group)
 
             sess.commit()

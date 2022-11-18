@@ -47,6 +47,7 @@ class UserSignUp(BaseModel):
 class UserSignIn(BaseModel):
     email: str
     password: str
+    signin_code: Optional[str] = None
 
 
 class UserChangePassword(BaseModel):
