@@ -14,13 +14,6 @@ type AuthProviderProps = {
 export default function AuthProvider({ children }: AuthProviderProps) {
     const [state, dispatch] = useReducer(authReducer, INITIAL_STATE);
 
-    useEffect(() => {
-        async function verifySession() {
-            console.log("Will search for existing user cookies");
-        }
-        verifySession();
-    }, []);
-
     return (
         <AuthContext.Provider value={{ state, dispatch }}>
             {children}

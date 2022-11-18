@@ -1,4 +1,5 @@
 import { useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ServiceRequestCallbacks } from "../../services/types";
 import { AuthContext } from "./AuthContext";
 import { AuthServiceUser, AuthUser } from "./types";
@@ -10,21 +11,28 @@ const headers = {
 
 export default function useAuth() {
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const {
         state: { isAuthenticated, user, error },
         dispatch,
     } = useContext(AuthContext);
 
+    // On every render, verify if the user is logged in
     useEffect(() => {
-        ;(async () => {
+        if (!isAuthenticated)
+        (async () => {
             await getProfile({
-                onHTTPSuccess: () => {
+                onHTTPSuccess: (data) => {
+                    dispatch({
+                        type: "SET_USER",
+                        payload: data,
+                    });
                 },
                 onHTTPError: () => {},
                 onHTTPNetworkError: () => {},
             })
-        })()
+        })();
     }, []);
 
     async function signUp(requestArgs: AuthServiceUser) {
@@ -134,7 +142,7 @@ export default function useAuth() {
             if (r.ok) {
                 onHTTPSuccess(data);
                 dispatch({ type: "RESET_USER" });
-                window.location.href = "/signin";
+                navigate("/signin");
             } else {
                 console.log("There was an error with the response")
                 console.log(r.status)

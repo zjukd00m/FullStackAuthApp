@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import useAuth from "../../context/auth/AuthHook";
 import "./styles.css";
 import { validateEmail } from "../../utils/validators";
+import { useNavigate } from "react-router-dom";
 
 interface FormError {
     email: string | null;
@@ -19,9 +20,10 @@ export default function SignIn() {
     });
 
     const { signIn, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        if (isAuthenticated) document.location.href = "/"
+        if (isAuthenticated) navigate("/");
     }, [isAuthenticated]);
 
     async function handleSubmit(e: any) {
@@ -50,7 +52,7 @@ export default function SignIn() {
             email,
             password,
             onHTTPSuccess: () => {
-                window.location.href = "/";
+                navigate("/");
             },
             onHTTPError: (_, data) => {
                 if (data.detail === "auth.invalid-user-or-password")

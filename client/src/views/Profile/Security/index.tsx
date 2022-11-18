@@ -1,58 +1,25 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import ChangePasswordForm from "../../../components/Forms/Password/Change";
-import Modal from "../../../components/Modals";
 import { deleteUserAccount } from "../../../services/auth";
 import "./styles.css";
 
-interface ModalSessionProps {
-    visibleModal: boolean;
-    closeModalFunction: () => void;
-}
 
-function ModalSessionWillCloseBody(props: ModalSessionProps) {
-    const { closeModalFunction, visibleModal } = props;
-    const CLOSE_MODAL_TIMEOUT_MS = 1000 * 5;
-    const [ countDown, setCountDown ] = useState(CLOSE_MODAL_TIMEOUT_MS);
-
-    // Decrease the counter and close the modal
-    const closeModal = () => setTimeout(() => {
-        console.log("THis is the CouNt nigga !!.. !: ", countDown);
-        if (countDown === 0) closeModalFunction();
-        else setCountDown((prevCount) => prevCount - 1);
-    }, CLOSE_MODAL_TIMEOUT_MS);
-
-    useEffect(() => {
-        if (visibleModal && countDown === 0) closeModal();
-    }, [visibleModal]);
-
-    return (
-        <div
-            style={{
-                backgroundColor: "green",
-            }}
-        >
-            <p> The count down </p>
-            {
-                <p> { countDown } </p>
-            }
-        </div>
-    )
-}
-
-
+// By default, the user will have a 
 export default function ProfileSecurity() {
     const [emailCodeOnLogin, setEmailCodeOnLogin] = useState<boolean>(false);
     const [visibleModal, setVisibleModal] = useState<boolean>(false);
     const [showChangePasswordForm, setShowChangePasswordForm] = useState<boolean>(false);
-
+    const [emailCode, setEmailCode] = useState<string>("");
+    const [enableEditEmailCode, setEnableEditEmailCode] = useState<boolean>(false);
     
-    function handleEmailCodeOnLoginChange() {
-        console.log("----")
+    function handleEmailCodeOnLoginChange(e: any) {
         setEmailCodeOnLogin(!emailCodeOnLogin);
-        console.log(!emailCodeOnLogin)
-        console.log("----")
-        setVisibleModal(true)
+        setVisibleModal(!visibleModal)
+    }
+
+    function handleEditEmailCode(e: any) {
+        setEmailCode(e.target.value);
     }
 
     const handleDeleteUserAcount = async () => {
@@ -73,31 +40,26 @@ export default function ProfileSecurity() {
         });
     }
     
-    const modalSessionWillClose = {
-        title: "Your session will be closed",
-        subtitle: "Sign in back again",
-        body: <ModalSessionWillCloseBody
-            visibleModal={visibleModal}
-            closeModalFunction={() => setVisibleModal(true)}
-        />
-    };
-
     return (
         <div className="profile-security-container">
-            <Modal 
-                visible={visibleModal}
-                title={modalSessionWillClose.title}
-                subtitle={modalSessionWillClose.subtitle}
-                body={modalSessionWillClose.body}
-            /> 
             <p className="profile-security-title"> Profile Security </p>
             <div className="profile-security-box">
                 <div className="profile-s-b-element">
                     <div className="">
-                        <input className="form-check-input me-3" type="checkbox" value={emailCodeOnLogin ? "true" : "false"} onClick={handleEmailCodeOnLoginChange} />
+                        <input className="form-check-input me-3" type="checkbox" value={emailCodeOnLogin ? "true" : "false"} onChange={handleEmailCodeOnLoginChange} />
                         <label style={{ fontSize: "16px" }}> Email code on log in </label>
                     </div>
                     <p style={{ fontSize: "12px" }}> A 180 seconds code sent when you try to log in. </p>
+                </div>
+                <div className="profile-s-b-element">
+                    <div className="">
+                        <label style={{ fontSize: "16px" }}> Custom email code </label>
+                        <div className="d-flex position-relative align-items-center">
+                            <input type="text" className="form-control ps-5" value={emailCode} onChange={handleEditEmailCode} disabled={!enableEditEmailCode}/>
+                            <i className="fa-regular fa-pen-to-square position-absolute fa-lg ps-3 text-primary" onClick={() => setEnableEditEmailCode(!enableEditEmailCode)}></i> 
+                        </div>
+                    </div>
+                    <p style={{ fontSize: "12px" }}> A code sent on every email to verify it comes from the app. </p>
                 </div>
                 <div className="profile-s-b-element">
                     <div>
@@ -108,11 +70,14 @@ export default function ProfileSecurity() {
                 <div className="profile-s-b-element">
                     <div>
                         <button className="btn btn-danger btn-sm text-white" onClick={handleDeleteUserAcount}>
-                            Eliminar cuenta
+                            Delete account
                         </button>
                     </div>
                 </div>
             </div>
+            <button className="btn btn-sm btn-primary text-white my-3" style={{ width: "fit-content" }}>
+                Save
+            </button>
         </div>
     )
 }

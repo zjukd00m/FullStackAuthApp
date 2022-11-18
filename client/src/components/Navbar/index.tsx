@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../../context/auth/AuthHook";
+import { AuthUser } from "../../context/auth/types";
 import "./styles.css";
+
+interface NavbarProps {
+    user: AuthUser;
+}
 
 interface DropdownMenuProps {
     options: {
@@ -24,9 +29,13 @@ function DropdownMenu(props: DropdownMenuProps) {
 }
 
 
-export default function Navbar() {
+export default function Navbar(props: NavbarProps) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const { user, signOut } = useAuth();
+    const { user } = props;
+    const { signOut } = useAuth();
+
+    console.log("This is the user")
+    console.log(user)
 
     const profileMenu = [
         {
@@ -54,10 +63,6 @@ export default function Navbar() {
         setShowProfileMenu(!showProfileMenu);
     }
 
-    if (!user?.id) {
-        return null;
-    }
-
     return (
         <div className="navigation-container">
             <nav className="navigation">
@@ -68,7 +73,7 @@ export default function Navbar() {
                     <li className="nav-section">
                         <img
                             alt="avatar"
-                            src={user.avatar ? user.avatar : "https://cdn3.iconfinder.com/data/icons/avatars-15/64/_Ninja-2-512.png"}
+                            src={user?.avatar ? user.avatar : ""}
                             height={50}
                             width={50}
                             className="user-avatar"

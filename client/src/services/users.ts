@@ -106,6 +106,7 @@ export class UserService {
             const r = await fetch(url, {
                 method: "delete",
                 headers: headers,
+                credentials: "include"
             });
 
             const data = await r.json();
