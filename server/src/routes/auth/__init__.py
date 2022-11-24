@@ -11,6 +11,7 @@ from src.utils.tokens import (
     generate_random_code, 
     generate_email_code
 )
+from src.enums import TokenType
 from ...models import Group, Token, User, UserGroup, Settings
 from .schema import UserSignIn, UserSignUp, UserChangePassword
 from ...utils.db import engine
@@ -25,16 +26,9 @@ templates = Jinja2Templates(directory=HTML_TEMPLATES_DIR)
 # can be added manually or generated automatically
 @route.post("/signup")
 def signup(_user: UserSignUp):
-    import warnings
-
-    warnings.filterwarnings(
-        "ignore",
-        ".*Class SelectOfScalar will not make use of SQL compilation caching.*",
-    )
     _user.password = hash_password(_user.password)
 
     with Session(engine) as sess:
-        print("-" * 20)
         query = select(User).where(User.email == _user.email)
         taken_user = sess.exec(query).first()
 
@@ -56,7 +50,7 @@ def signup(_user: UserSignUp):
         # Create the user settings entity before commiting to the database
         email_code = generate_email_code()
         user_settings = Settings(
-            signin_code=False, 
+            signin_code=False,
             email_code=email_code,
             user_id=user.id,
         )
@@ -65,8 +59,7 @@ def signup(_user: UserSignUp):
 
         # Add the user to the given groups
         if "OTHER" in _user.groups:
-            query = select(Group).where(Group.name == "OTHER")
-            other_group: Group = sess.exec(query).first()
+            other_group: Group = sess.exec(select(Group).where(Group.name == "OTHER")).first()
             if not other_group:
                 raise HTTPException(500, "Missing OTHER group at db")
 
@@ -74,8 +67,7 @@ def signup(_user: UserSignUp):
             sess.add(UserGroup(user_id=user.id, group_id=other_group.id))
 
         if "ADMIN" in _user.groups:
-            query = select(Group).where(Group.name == "ADMIN")
-            admin_group: Group = sess.exec(query).first()
+            admin_group: Group = sess.exec(select(Group).where(Group.name == "ADMIN")).first()
             if not admin_group:
                 raise HTTPException(500, "Missing ADMIN group at db")
 
@@ -86,7 +78,7 @@ def signup(_user: UserSignUp):
         _token = generate_random_code(32)
         expires_at = add_expiration_time(3600)
 
-        token = Token(token=_token, expires_at=expires_at, user_id=user.id)
+        token = Token(token=_token, expires_at=expires_at, user_id=user.id, type=TokenType.ACCOUNT_CONFIRM)
 
         sess.add(token)
         sess.commit()
@@ -98,7 +90,11 @@ def signup(_user: UserSignUp):
                 "Email confirmation",
                 "EMAIL_CONFIRMATION",
                 to=[user.email],
-                args={"token": token.token},
+                args={
+                    "token": token.token,
+                    "email_code": email_code,
+                    "user_email": user.email,
+                },
             )
         except Exception as e:
             raise HTTPException(500, e.__str__())
@@ -111,13 +107,6 @@ def signup(_user: UserSignUp):
 
 @route.post("/signin")
 def signin(_user: UserSignIn):
-    import warnings
-
-    warnings.filterwarnings(
-        "ignore",
-        ".*Class SelectOfScalar will not make use of SQL compilation caching.*",
-    )
-
     with Session(engine) as sess:
         query = select(User).where(User.email == _user.email)
         user: User = sess.exec(query).first()
@@ -131,8 +120,7 @@ def signin(_user: UserSignIn):
             raise HTTPException(400, "auth.invalid-user-or-password")
 
         # Verify if the user has the sign in code enabled
-        query = select(Settings).where(Settings.user_id == user.id)
-        user_settings: Settings = sess.exec(query).first()
+        user_settings: Settings = sess.exec(select(Settings).where(Settings.user_id == user.id)).first()
 
         if user_settings.signin_code:
             signin_code = _user.signin_code
@@ -140,8 +128,7 @@ def signin(_user: UserSignIn):
                 raise HTTPException(422, "auth.missing-signin-code")
 
             # Verify the signin code is valid
-            query = select(Token).where(Token.token == signin_code)
-            token: Token = sess.exec(query).first()
+            token: Token = sess.exec(select(Token).where(Token.token == signin_code)).first()
 
             if not token:
                 raise HTTPException(404, "auth.token-not-found")
@@ -208,13 +195,12 @@ def confirm_email(token: str, request: Request):
         if not _token.is_valid():
             raise HTTPException(403, "auth-confirm.token-expired")
 
+        _token.valid = False
+
         user.confirmed = True
 
-        print(user)
-        print(_token.is_valid())
-
         sess.add(user)
-        sess.delete(_token)
+        sess.add(_token)
 
         sess.commit()
 

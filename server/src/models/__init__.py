@@ -8,16 +8,9 @@ from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from enum import Enum
 from src.utils.tokens import generate_random_code
-
-DEFAULT_AVATAR_URL = "https://toppng.com/public/uploads/preview/batman-icon-jira-avatar-11562897771zvwv8r510z.png"
-
-
-class GroupType(str, Enum):
-    ADMIN = "ADMIN"
-    OTHER = "OTHER"
-
+from src.settings import DEFAULT_AVATAR_URL
+from src.enums import GroupType, TokenType
 
 class UserGroup(SQLModel, table=True):
     __tablename__ = "user_groups"
@@ -29,7 +22,6 @@ class UserGroup(SQLModel, table=True):
         default=None, foreign_key="roles.id", primary_key=True
     )
     
-
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
@@ -67,6 +59,7 @@ class Settings(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     signin_code: bool = Field(default=False)
     email_code: str = Field(default="")
+    redirect_url: str = Field(default="", nullable=True)   # The url for the users to ne redirected on login
 
     user_id: Optional[int] = Field(default=None, foreign_key="users.id")
 
@@ -121,6 +114,9 @@ class Template(SQLModel, table=True):
     )
 
 class Perms(SQLModel, table=True):
+    """
+    This table will be used for grained permissions
+    """
     __tablename__ = "permissions"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -135,12 +131,13 @@ class Token(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     token: str = Field(nullable=False)
     expires_at: datetime = Field(nullable=False)
-    scanned: bool = Field(default=False)
+    valid: bool = Field(default=True)
+    type: TokenType = Field(nullable=False)
 
     user_id: Optional[int] = Field(default=None, foreign_key="users.id")
 
     def is_valid(self) -> bool:
         current_time = datetime.now()
-        if current_time < self.expires_at and not self.scanned:
+        if current_time < self.expires_at and self.valid:
             return True
         return False
