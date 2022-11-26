@@ -21,6 +21,7 @@ route = APIRouter()
 
 templates = Jinja2Templates(directory=HTML_TEMPLATES_DIR)
 
+
 # The sign up endpoint is only available for internal users
 # And for external ones, they are added manually and the password
 # can be added manually or generated automatically
@@ -47,7 +48,7 @@ def signup(_user: UserSignUp):
         sess.commit()
         sess.refresh(user)
 
-        # Create the user settings entity before commiting to the database
+        # Create the user settings entity before the commit to the database
         email_code = generate_email_code()
         user_settings = Settings(
             signin_code=False,
@@ -106,7 +107,7 @@ def signup(_user: UserSignUp):
 
 
 @route.post("/signin")
-def signin(_user: UserSignIn):
+def sign_in(_user: UserSignIn):
     with Session(engine) as sess:
         query = select(User).where(User.email == _user.email)
         user: User = sess.exec(query).first()
@@ -132,6 +133,9 @@ def signin(_user: UserSignIn):
 
             if not token:
                 raise HTTPException(404, "auth.token-not-found")
+
+            if not token.type == TokenType.SIGNIN_CODE:
+                raise HTTPException(400, "auth.token-incorrect-type")
 
             if not token.is_valid():
                 raise HTTPException(400, "auth.token-expired")
@@ -177,14 +181,12 @@ def sign_out(request: Request):
 
 @route.get("/confirm")
 def confirm_email(token: str, request: Request):
+    """
+    Call this endpoint with a valid token of the ACCOUNT_CONFIRM type to confirm the user account.
+    """
     with Session(engine) as sess:
         query = select(Token, User).where(Token.token == token)
         data = sess.exec(query).first()
-
-        users = sess.exec(query).all()
-
-        for _user in users:
-            print(_user)
 
         if not data or not len(data) == 2:
             raise HTTPException(404, "auth-confirm.token-not-found")
@@ -192,24 +194,29 @@ def confirm_email(token: str, request: Request):
         _token: Token = data[0]
         user: User = data[1]
 
+        if not _token.type == TokenType.ACCOUNT_CONFIRM:
+            raise HTTPException(400, "auth-confirm.token-incorrect-type")
+
         if not _token.is_valid():
             raise HTTPException(403, "auth-confirm.token-expired")
-
-        _token.valid = False
 
         user.confirmed = True
 
         sess.add(user)
-        sess.add(_token)
+        sess.delete(_token)
 
         sess.commit()
 
-    return templates.TemplateResponse("email-confirmed.html", {"request": request})
+    return templates.TemplateResponse("email-confirmed.html", { "request": request })
 
 
 @route.delete("/profile")
 @requires(["authenticated"])
 def delete_profile(request: Request):
+    """
+    The user with an authenticated request can call this endpoint to delete the profile
+    completely from the app and third party services.
+    """
     user_id = request.user.id
     try:
         with Session(engine) as sess:
@@ -237,6 +244,9 @@ def delete_profile(request: Request):
 @route.get("/profile")
 @requires(["authenticated"])
 def get_profile(request: Request):
+    """
+    The user with the authenticated request gets the profile information.
+    """
     user_id = request.user.id
     with Session(engine) as sess:
         query = select(User, Group).where(User.id == user_id)
@@ -271,7 +281,14 @@ def change_password(userData: UserChangePassword, request: Request):
         if not verify_password(current_password, user.password):
             raise HTTPException(400, "user.password-mismatch")
 
-        user.password = hash_password(new_password)
+        last_password = user.password
+
+        hashed_new_password = hash_password(new_password)
+
+        if last_password == hashed_new_password:
+            raise HTTPException(400, "user.password-may-be-used-before")
+
+        user.password = hashed_new_password
 
         sess.add(user)
         sess.commit()

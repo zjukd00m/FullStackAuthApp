@@ -36,3 +36,17 @@ class UserChangePassword(BaseModel):
     current_password: str
     new_password: str
     confirm_password: str
+
+    @validator("new_password")
+    def new_password_validator(cls, v):
+        valid_password = validate_password(v)
+        if not valid_password:
+            raise ValueError("Password is insecure")
+        return v
+
+    @validator("confirm_password")
+    def confirm_password_validator(cls, v):
+        valid_password = validate_password(v)
+        if not valid_password:
+            raise ValueError("Password is insecure")
+        return v
