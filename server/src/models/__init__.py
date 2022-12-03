@@ -12,6 +12,7 @@ from src.utils.tokens import generate_random_code
 from src.settings import DEFAULT_AVATAR_URL
 from src.enums import GroupType, TokenType
 
+
 class UserGroup(SQLModel, table=True):
     __tablename__ = "user_groups"
 
@@ -21,12 +22,12 @@ class UserGroup(SQLModel, table=True):
     group_id: Optional[int] = Field(
         default=None, foreign_key="roles.id", primary_key=True
     )
-    
+
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
     __table_args__ = (UniqueConstraint("email"),)
-    
+
     # Avoid passing None when creating the entity
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str
@@ -40,11 +41,18 @@ class User(SQLModel, table=True):
     avatar: Optional[str] = Field(default=DEFAULT_AVATAR_URL)
 
     groups: List["Group"] = Relationship(
-        sa_relationship=relationship("Group", secondary="UserGroup", cascade="all, delete-orphan", back_populates="users")
+        sa_relationship=relationship(
+            "Group",
+            secondary="UserGroup",
+            cascade="all, delete-orphan",
+            back_populates="users",
+        )
     )
 
     templates: List["Template"] = Relationship(
-        sa_relationship=relationship("Template", cascade="all, delete-orphan", back_populates="users")
+        sa_relationship=relationship(
+            "Template", cascade="all, delete-orphan", back_populates="users"
+        )
     )
 
     settings = Relationship(
@@ -54,12 +62,14 @@ class User(SQLModel, table=True):
 
 class Settings(SQLModel, table=True):
     __tablename__ = "settings"
-    __table_args__ = (UniqueConstraint("email_code"),) 
-    
+    __table_args__ = (UniqueConstraint("email_code"),)
+
     id: Optional[int] = Field(default=None, primary_key=True)
     signin_code: bool = Field(default=False)
     email_code: str = Field(default="")
-    redirect_url: str = Field(default="", nullable=True)   # The url for the users to ne redirected on login
+    redirect_url: str = Field(
+        default="", nullable=True
+    )  # The url for the users to ne redirected on login
 
     user_id: Optional[int] = Field(default=None, foreign_key="users.id")
 
@@ -82,7 +92,7 @@ class Document(SQLModel, table=True):
 class APIKey(SQLModel, table=True):
     __tablename__ = "apikeys"
     __table_args__ = (UniqueConstraint("key"),)
-    
+
     id: Optional[int] = Field(default=None, primary_key=True)
     key: str
     expirationTime: int = 60 * 60  # 3600 seconds (1 hour)
@@ -96,7 +106,12 @@ class Group(SQLModel, table=True):
     name: GroupType
 
     users: List["User"] = Relationship(
-        sa_relationship=relationship("User", secondary="UserGroupTable", cascade="all, delete", back_populates="settings")
+        sa_relationship=relationship(
+            "User",
+            secondary="UserGroupTable",
+            cascade="all, delete",
+            back_populates="settings",
+        )
     )
 
 
@@ -113,10 +128,12 @@ class Template(SQLModel, table=True):
         sa_relationship=relationship("User", back_populates="templates")
     )
 
+
 class Perms(SQLModel, table=True):
     """
     This table will be used for grained permissions
     """
+
     __tablename__ = "permissions"
 
     id: Optional[int] = Field(default=None, primary_key=True)

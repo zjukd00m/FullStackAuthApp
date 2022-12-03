@@ -9,4 +9,5 @@ class GroupType(str, Enum):
 class TokenType(str, Enum):
     ACCOUNT_CONFIRM = "ACCOUNT_CONFIRM"
     SIGNIN_CODE = "SIGNIN_CODE"
+    RESET_PASSWORD = "RESET_PASSWORD"
     OTHER = "OTHER"

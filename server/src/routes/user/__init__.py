@@ -5,10 +5,12 @@ from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, UploadFile, Request
 from fastapi.encoders import jsonable_encoder
 from starlette.authentication import requires
+from sqlalchemy.sql.expression import join
 from sqlmodel import Session, select
-from src.models import Token, User
+from src.models import Token, User, Settings
 from src.utils.db import engine
-
+from src.services.users.settings import get_user_settings
+from .schema import EditSettings
 
 route = APIRouter()
 
@@ -154,7 +156,10 @@ def edit_user(user_id: int, user_data: UserEditInput):
             user.avatar = user_data.avatar
             edit_user = True
 
-        if user_data.display_name != None and user_data.display_name != user.display_name:
+        if (
+            user_data.display_name != None
+            and user_data.display_name != user.display_name
+        ):
             user.display_name = user_data.display_name
             edit_user = True
 
@@ -170,6 +175,43 @@ def edit_user(user_id: int, user_data: UserEditInput):
         return user.__dict__
 
 
-@route.patch("/{user_id}")
-def edit_user_form():
-    return {"message": "user was edited successfully"}
+# -- Settings services
+@route.get("/{user_id}/settings")
+@requires(["authenticated"])
+def user_settings(request: Request):
+    user_settings = get_user_settings(request.user.id)
+
+    if not user_settings:
+        raise HTTPException(404, "user.settings-not-found")
+
+    return {"data": user_settings.dict()}
+
+
+@route.put("/{user_id}/settings")
+@requires(["authenticated"])
+def edit_settings(request: Request, user_id: int, edit_settings: EditSettings):
+    if request.user.id != user_id:
+        raise HTTPException(403, "user-settings.not-allowed")
+
+    with Session(engine) as sess:
+        query = (
+            select(Settings)
+            .select_from(join(User, Settings, User.id == Settings.user_id))
+            .where(User.id == user_id)
+        )
+        user_settings = sess.exec(query).first()
+
+        if not user_settings:
+            raise HTTPException(404, "user-settings.not-found")
+
+        if edit_settings.email_code != user_settings.email_code:
+            user_settings.email_code = edit_settings.email_code
+
+        if edit_settings.signin_code != user_settings.signin_code:
+            user_settings.signin_code = edit_settings.signin_code
+
+        sess.add(user_settings)
+        sess.commit()
+        sess.refresh(user_settings)
+
+        return {"data": user_settings.dict()}

@@ -1,9 +1,10 @@
 import json
 import requests
-from typing import Dict, List, Literal, Optional, Union
+from typing import Dict, List, Literal, Optional
 from ..settings import RAPID_API_HOST_SEND_GRID, RAPID_API_KEY_SEND_GRID
 from src.templates.email_confirm import get_email_confirmation_template
 from src.templates.email_sign_in_code import get_email_sign_in_code_template
+from src.templates.reset_password import get_email_reset_password_template
 
 
 HTML_TEMPLATES = [
@@ -104,7 +105,15 @@ def send_email(
         })
 
     elif template == "RESET_PASSWORD":
-        pass
+        restore_password_url = args.get("restore_password_url")
+
+        if not restore_password_url:
+            raise ValueError("The toke must be provided in the args")
+        
+        html = get_email_reset_password_template({
+            "restore_password_url": restore_password_url, 
+            "email_code": email_code
+        })
 
     send_grid_client = SendGridClient()
 

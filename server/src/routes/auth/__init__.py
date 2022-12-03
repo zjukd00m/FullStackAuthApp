@@ -1,21 +1,31 @@
+from typing import Optional
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from starlette.authentication import requires
 from sqlmodel import Session, select
-from src.settings import HTML_TEMPLATES_DIR
+from src.settings import HTML_TEMPLATES_DIR, CLIENT_URL
 from src.services.mailing import send_email
 from src.utils.tokens import (
-    add_expiration_time, 
-    generate_random_code, 
-    generate_email_code
+    add_expiration_time,
+    generate_random_code,
+    generate_email_code,
 )
 from src.enums import TokenType
 from ...models import Group, Token, User, UserGroup, Settings
-from .schema import UserSignIn, UserSignUp, UserChangePassword
+from .schema import (
+    UserSignIn,
+    UserSignUp,
+    UserChangePassword,
+    ForgetPassword,
+    RestorePassword,
+)
 from ...utils.db import engine
 from ...utils.auth import encode_payload, hash_password, verify_password
+from src.services.users.profile import get_user_settings, get_user_roles
+from src.services.tokens import create_auth_token, last_token_expired
+from src.responses.serializables import ORJSONResponse
 
 route = APIRouter()
 
@@ -60,7 +70,9 @@ def signup(_user: UserSignUp):
 
         # Add the user to the given groups
         if "OTHER" in _user.groups:
-            other_group: Group = sess.exec(select(Group).where(Group.name == "OTHER")).first()
+            other_group: Group = sess.exec(
+                select(Group).where(Group.name == "OTHER")
+            ).first()
             if not other_group:
                 raise HTTPException(500, "Missing OTHER group at db")
 
@@ -68,7 +80,9 @@ def signup(_user: UserSignUp):
             sess.add(UserGroup(user_id=user.id, group_id=other_group.id))
 
         if "ADMIN" in _user.groups:
-            admin_group: Group = sess.exec(select(Group).where(Group.name == "ADMIN")).first()
+            admin_group: Group = sess.exec(
+                select(Group).where(Group.name == "ADMIN")
+            ).first()
             if not admin_group:
                 raise HTTPException(500, "Missing ADMIN group at db")
 
@@ -79,7 +93,12 @@ def signup(_user: UserSignUp):
         _token = generate_random_code(32)
         expires_at = add_expiration_time(3600)
 
-        token = Token(token=_token, expires_at=expires_at, user_id=user.id, type=TokenType.ACCOUNT_CONFIRM)
+        token = Token(
+            token=_token,
+            expires_at=expires_at,
+            user_id=user.id,
+            type=TokenType.ACCOUNT_CONFIRM,
+        )
 
         sess.add(token)
         sess.commit()
@@ -112,7 +131,7 @@ def sign_in(_user: UserSignIn):
         query = select(User).where(User.email == _user.email)
         user: User = sess.exec(query).first()
 
-        if not user:
+        if not user or not user.id:
             raise HTTPException(404, "auth.sign-in.invalid")
 
         valid_password = verify_password(_user.password, user.password)
@@ -121,7 +140,9 @@ def sign_in(_user: UserSignIn):
             raise HTTPException(400, "auth.invalid-user-or-password")
 
         # Verify if the user has the sign in code enabled
-        user_settings: Settings = sess.exec(select(Settings).where(Settings.user_id == user.id)).first()
+        user_settings: Settings = sess.exec(
+            select(Settings).where(Settings.user_id == user.id)
+        ).first()
 
         if user_settings.signin_code:
             signin_code = _user.signin_code
@@ -129,7 +150,9 @@ def sign_in(_user: UserSignIn):
                 raise HTTPException(422, "auth.missing-signin-code")
 
             # Verify the signin code is valid
-            token: Token = sess.exec(select(Token).where(Token.token == signin_code)).first()
+            token: Token = sess.exec(
+                select(Token).where(Token.token == signin_code)
+            ).first()
 
             if not token:
                 raise HTTPException(404, "auth.token-not-found")
@@ -143,9 +166,7 @@ def sign_in(_user: UserSignIn):
             sess.delete(token)
 
         # Get the user groups
-        query = select(UserGroup, Group).where(UserGroup.user_id == user.id)
-        user_groups = sess.exec(query).all()
-        user_groups = list(map(lambda user_group: user_group[1].name, user_groups))
+        user_groups = get_user_roles(user.id)
 
         # Update the user's last_sign_in date
         user.last_sign_in = datetime.now()
@@ -157,11 +178,11 @@ def sign_in(_user: UserSignIn):
 
         jwt = encode_payload(payload)
 
-        response_content = {
-            "message": "The user signed in successfully",
-        }
+        # Return the user's data
+        user_data = user.dict()
+        del user_data["password"]
 
-        response = JSONResponse(content=response_content)
+        response = ORJSONResponse({"message": "User signed in with success"})
 
         response.set_cookie(key="auth_key", value=jwt, httponly=True)
 
@@ -207,7 +228,7 @@ def confirm_email(token: str, request: Request):
 
         sess.commit()
 
-    return templates.TemplateResponse("email-confirmed.html", { "request": request })
+    return templates.TemplateResponse("email-confirmed.html", {"request": request})
 
 
 @route.delete("/profile")
@@ -249,15 +270,20 @@ def get_profile(request: Request):
     """
     user_id = request.user.id
     with Session(engine) as sess:
-        query = select(User, Group).where(User.id == user_id)
-        _user, _groups = sess.exec(query).first()
+        query = select(User).where(User.id == user_id)
+        user = sess.exec(query).first()
 
-        user = _user.dict()
-        groups = _groups.dict()
+        if not user or not user.id:
+            raise HTTPException(404, "user.not-found")
 
-        del user["password"]
+        user_groups = get_user_roles(user.id)
+        user_settings = get_user_settings(user.id)
 
-        return {**user, "groups": groups}
+        user_data = user.dict()
+
+        del user_data["password"]
+
+        return {**user_data, "groups": user_groups, "settings": user_settings}
 
 
 @route.post("/password/change")
@@ -273,8 +299,8 @@ def change_password(userData: UserChangePassword, request: Request):
 
     with Session(engine) as sess:
         query = select(User).where(User.id == user_id)
-        user: User = sess.exec(query).first()
-        
+        user = sess.exec(query).first()
+
         if not user:
             raise HTTPException(404, "user.not-found")
 
@@ -292,7 +318,75 @@ def change_password(userData: UserChangePassword, request: Request):
 
         sess.add(user)
         sess.commit()
-        
-        return {
-            "message": "Password changed successfully"
-        }
+
+        return {"message": "Password changed successfully"}
+
+
+@route.post("/password/restore")
+def restore_password(restorePassword: RestorePassword):
+    email = restorePassword.email
+    password = restorePassword.password
+
+    with Session(engine) as sess:
+        query = select(User).where(User.email == email)
+        user: Optional[User] = sess.exec(query).first()
+
+        if not user:
+            raise HTTPException(404, "user.not-found")
+
+        hashed_password = hash_password(password)
+
+        user.password = hashed_password
+
+        sess.add(user)
+        sess.commit()
+
+    return 200
+
+
+@route.post("/password/forget")
+def forget_password(forgetPassword: ForgetPassword):
+    email = forgetPassword.email
+
+    with Session(engine) as sess:
+        query = select(User).where(User.email == email)
+        user: Optional[User] = sess.exec(query).first()
+
+        if not user or not user.id:
+            raise HTTPException(404, "user.not-found")
+
+        # Verify if the RESET_PASSWORD token was already generated
+        if not last_token_expired(user.id):
+            raise HTTPException(400, "token.password-reset-token-not-expired")
+
+        # Get the email code from the user settings
+        user_settings = get_user_settings(user.id)
+
+        if not user_settings:
+            raise HTTPException(404, "user.missing-settings-table")
+
+        email_code = user_settings.dict().get("email_code")
+
+        auth_token = create_auth_token(user.id, 33, 60 * 5, TokenType.RESET_PASSWORD)
+
+        sess.add(auth_token)
+        sess.commit()
+
+        password_reset_code = auth_token.token
+
+        restore_password_url = f"{CLIENT_URL}/password-reset?code={password_reset_code}"
+
+        send_email(
+            "Restore your password",
+            "RESET_PASSWORD",
+            [user.email],
+            None,
+            {
+                "email_code": email_code,
+                "restore_password_url": restore_password_url,
+            },
+        )
+
+    return {
+        "message": "The forget email password was sent successfully",
+    }

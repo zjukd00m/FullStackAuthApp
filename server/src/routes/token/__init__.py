@@ -2,42 +2,12 @@ from fastapi import APIRouter, HTTPException
 from src.services.mailing import send_email
 from sqlmodel import Session, select
 from sqlalchemy.sql.functions import func
-from datetime import datetime
-from src.utils.tokens import add_expiration_time, generate_random_code
 from src.utils.db import engine
 from src.models import User, Token, Settings
-from src.enums import TokenType
-from src.settings import TOKEN_EXPIRATION_TIME
 from .schema import CreateTokenInput
+from src.services.tokens import create_auth_token
 
 route = APIRouter()
-
-
-def create_auth_token(
-        user_id: int,
-        length: int = 5,
-        expiration_time: int = TOKEN_EXPIRATION_TIME,
-        type: TokenType = TokenType.OTHER
-) -> Token:
-    """
-    Creates a token entity for the user with the given id.
-    If not type is specified then the default TokenType is OTHER
-
-    Args:
-        user_id (int): _description_
-        expiration_time (Optional[int], optional): _description_. Defaults to TOKEN_EXPIRATION_TIME.
-        length (Optional[int], optional): _description_. Defaults to 5.
-        type (Optional[TokenType], optional): _description_. Defaults to OTHER
-
-    Returns:
-        Token: The Token entity
-    """
-    code = generate_random_code(length)
-    expires_at = add_expiration_time(expiration_time)
-
-    token = Token(token=code, expires_at=expires_at, user_id=user_id, type=type)
-
-    return token
 
 
 @route.post("/")

@@ -1,4 +1,3 @@
-import re
 from typing import List, Optional
 from pydantic import BaseModel, validator
 from email_validator import validate_email, EmailNotValidError
@@ -31,6 +30,14 @@ class UserSignIn(BaseModel):
     password: str
     signin_code: Optional[str] = None
 
+    @validator("email")
+    def email_validator(cls, v):
+        try:
+            email = validate_email(v).email
+        except EmailNotValidError as e:
+            raise ValueError(e.__str__())
+        return email
+
 
 class UserChangePassword(BaseModel):
     current_password: str
@@ -50,3 +57,27 @@ class UserChangePassword(BaseModel):
         if not valid_password:
             raise ValueError("Password is insecure")
         return v
+
+
+class RestorePassword(BaseModel):
+    email: str
+    password: str
+
+    @validator("password")
+    def password_validator(cls, v):
+        valid_password = validate_password(v)
+        if not valid_password:
+            raise ValueError("Password is insecure")
+        return v
+
+
+class ForgetPassword(BaseModel):
+    email: str
+
+    @validator("email")
+    def email_validator(cls, v):
+        try:
+            email = validate_email(v).email
+        except EmailNotValidError as e:
+            raise ValueError(e.__str__())
+        return email

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from ..settings import JWT_SECRET
 
 
-def encode_payload(payload: Dict) -> Dict:
+def encode_payload(payload: Dict) -> str:
     iat = datetime.utcnow()
     exp = iat + timedelta(hours=1)
 
