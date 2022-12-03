@@ -33,7 +33,7 @@ export default function useAuth() {
                 onHTTPNetworkError: () => {},
             })
         })();
-    }, []);
+    }, [isAuthenticated]);
 
     async function signUp(requestArgs: AuthServiceUser) {
         setLoading(true);
@@ -95,6 +95,7 @@ export default function useAuth() {
         });
 
         try {
+            // Sign the user up
             const r = await fetch(url, {
                 method: "post",
                 headers: headers,
@@ -104,15 +105,9 @@ export default function useAuth() {
 
             const data = await r.json();
 
-            if (r.ok) {
+            if (r.ok) {                
+                // Fetch the user profile
                 onHTTPSuccess(data);
-                const { user } = data;
-                dispatch({
-                    type: "SET_USER",
-                    payload: {
-                        ...user,
-                    },
-                });
             } else {
                 onHTTPError(r.status, data);
             }

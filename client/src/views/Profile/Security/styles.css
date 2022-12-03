@@ -1,3 +1,9 @@
+.profile-security-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .profile-security-title {
     font-size: 26px;
 }
@@ -20,4 +26,3 @@
 .inactive-option {
     background-color: #EBCB8B;
 }
-

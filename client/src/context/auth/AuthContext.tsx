@@ -1,4 +1,4 @@
-import { createContext, useEffect, useReducer } from "react";
+import { createContext, useReducer } from "react";
 import { authReducer, INITIAL_STATE } from "./reducer";
 import { IAuthContext } from "./types";
 

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../context/auth/AuthHook";
 import { AuthUser } from "../../context/auth/types";
 import "./styles.css";
@@ -10,7 +10,7 @@ interface NavbarProps {
 
 interface DropdownMenuProps {
     options: {
-        element: React.ReactNode;
+        element: string;
         action: () => void;
     }[];
 }
@@ -33,29 +33,33 @@ export default function Navbar(props: NavbarProps) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const { user } = props;
     const { signOut } = useAuth();
-
-    console.log("This is the user")
-    console.log(user)
+    const navigate = useNavigate();
 
     const profileMenu = [
         {
-            element: <Link to="/profile" className="link-element"> <p> Settings </p> </Link>,
-            action: () => { }
+            element: "Settings",
+            action: () => {
+                setShowProfileMenu(false);
+                navigate("/profile");
+            }
         },
         {
-            element: <p> Sign out </p>,
-            action: () => signOut({
-                onHTTPSuccess: (data) => {
-                    console.log(data);
-                },
-                onHTTPError: (status, data) => {
-                    console.log(status);
-                    console.log(data);
-                },
-                onHTTPNetworkError: (e) => {
-                    console.log(e.message);
-                }
-            })
+            element: "Sign out",
+            action: () => {
+                setShowProfileMenu(false);
+                signOut({
+                    onHTTPSuccess: (data) => {
+                        console.log(data);
+                    },
+                    onHTTPError: (status, data) => {
+                        console.log(status);
+                        console.log(data);
+                    },
+                    onHTTPNetworkError: (e) => {
+                        console.log(e.message);
+                    }
+                });
+            } 
         },
     ];
 
@@ -67,7 +71,9 @@ export default function Navbar(props: NavbarProps) {
         <div className="navigation-container">
             <nav className="navigation">
                 <div className="nav-header">
-                    <p className="nav-title"> Admin Dashboard </p>
+                    <Link to="/" className="nav-title">
+                        Admin Dashboard
+                    </Link>
                 </div>
                 <ul className="nav-sections">
                     <li className="nav-section">

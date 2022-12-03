@@ -1,6 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 import "./styles.css";
 
+
 export default function Profile() {
     return (
         <div className="user-card-container">

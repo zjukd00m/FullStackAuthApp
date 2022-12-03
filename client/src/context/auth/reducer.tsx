@@ -10,6 +10,13 @@ export const INITIAL_STATE: IAuthState = {
         active: false,
         last_sign_in: "",
         phone_number: undefined,
+        settings: {
+            id: 0,
+            email_code: "",
+            signin_code: false,
+            user_id: 0,
+            redirect_url: "",
+        }
     },
     error: null,
 };
@@ -28,6 +35,13 @@ export function authReducer(
                 isAuthenticated: true,
                 user,
             };
+        }
+        case "SET_USER_SETTINGS": {
+            const { settings } = payload;
+            return {
+                ...state,
+                user: { ...state.user, settings },
+            }
         }
         case "RESET_USER": {
             return INITIAL_STATE;

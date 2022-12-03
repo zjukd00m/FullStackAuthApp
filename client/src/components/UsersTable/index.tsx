@@ -27,7 +27,7 @@ export default function UsersTable() {
                 query: userQuery,
             });
         })();
-    }, [userQuery]);    
+    }, [userQuery]);
     
     async function handleSearchUsers(e: any) {
         const query = e.target.value;
@@ -193,9 +193,6 @@ export default function UsersTable() {
                                                 height={150}
                                             />
                                             <p> No user data </p>
-                                            <button className="btn btn-primary text-white" onClick={() => setShowAddUserModal(true)}>
-                                                Add user
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>

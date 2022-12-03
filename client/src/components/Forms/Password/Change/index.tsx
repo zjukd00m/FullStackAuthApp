@@ -4,12 +4,8 @@ import { changePassword } from "../../../../services/auth";
 import { validatePassword } from "../../../../utils/validators";
 import "./styles.css";
 
-interface ChangePasswordFormProps {
-    onSuccessCall: () => void;
-}
 
-export default function ChangePasswordForm(props: ChangePasswordFormProps) {
-    const { onSuccessCall } = props;
+export default function ChangePasswordForm() {
     const [currentPasswd, setCurrentPasswd] = useState("");
     const [newPasswd, setNewPasswd] = useState("");
     const [confirmPasswd, setConfirmPasswd] = useState("");
@@ -107,7 +103,6 @@ export default function ChangePasswordForm(props: ChangePasswordFormProps) {
         }, {
             onHTTPSuccess: () => {
                 toast.success("The password was changed");
-                onSuccessCall();
             },
             onHTTPError: (_, data) => {
                 toast.error(data.detail);

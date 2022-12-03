@@ -1,12 +1,10 @@
 import React from "react";
 import { ServiceRequestCallbacks } from "../../services/types";
+import { UserSettings } from "../../types";
 
 type AuthGroup = "ADMIN" | "OTHER";
 
-interface UserGroups {
-    id: number;
-    name: AuthGroup;
-}
+type UserGroups = AuthGroup;
 
 export interface AuthUser {
     id: number;
@@ -19,6 +17,7 @@ export interface AuthUser {
     display_name?: string;
     avatar?: string;
     groups?: UserGroups[];
+    settings?: UserSettings;
 }
 
 export interface AuthUserEdit {
@@ -44,6 +43,7 @@ export interface IActionType {
 export type ActionType =
     | "SET_USER"
     | "SET_PROFILE"
+    | "SET_USER_SETTINGS"
     | "RESET_USER"
     | "SET_ERROR"
     | "SET_IS_AUTHENTICATED";

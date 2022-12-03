@@ -21,7 +21,7 @@ type FormProps = {
 export default function AddUserForm(props: FormProps) {
     const { onSuccess, onCancel } = props;
     const { signUp } = useAuth();
-    const { register, handleSubmit, formState: { errors } } = useForm<FormInput>({
+    const { register, handleSubmit, formState: { errors }, setError } = useForm<FormInput>({
         resolver: yupResolver(schema),
     });
 
@@ -38,8 +38,12 @@ export default function AddUserForm(props: FormProps) {
                     onSuccess(data);
                 },
                 onHTTPError: (status, data) => {
-                    console.log(status);
-                    alert(data.detail);
+                    const error = data.detail
+                    if (status === 422) {
+                        if (!error.length) return
+                        const errorMessage = error[0].msg;
+                        alert(errorMessage);
+                    }
                 },
                 onHTTPNetworkError: (e) => {
                     alert(e.message);
