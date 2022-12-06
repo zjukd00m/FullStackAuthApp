@@ -38,6 +38,12 @@ class UserSignIn(BaseModel):
             raise ValueError(e.__str__())
         return email
 
+    @validator("signin_code")
+    def sigin_code_validator(cls, v):
+        if len(v) < 6:
+            raise ValueError("Invalid code")
+        return v
+
 
 class UserChangePassword(BaseModel):
     current_password: str

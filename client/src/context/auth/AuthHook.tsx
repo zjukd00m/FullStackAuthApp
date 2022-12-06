@@ -82,6 +82,7 @@ export default function useAuth() {
         const {
             email,
             password,
+            authCode,
             onHTTPError,
             onHTTPSuccess,
             onHTTPNetworkError,
@@ -92,6 +93,7 @@ export default function useAuth() {
         const body = JSON.stringify({
             email,
             password,
+            ...(authCode?.length && { signin_code: authCode }),
         });
 
         try {

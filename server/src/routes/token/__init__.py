@@ -6,6 +6,7 @@ from src.utils.db import engine
 from src.models import User, Token, Settings
 from .schema import CreateTokenInput
 from src.services.tokens import create_auth_token
+from src.enums import TokenType
 
 route = APIRouter()
 
@@ -27,21 +28,17 @@ def generate_token(token_input: CreateTokenInput):
         _type_: Response
     """
 
-    email = token_input.email
-    length = token_input.length
+    email = token_input.user_email
+    token_type = token_input.token_type
 
     # The token's length must be bounded
     # And if not specified then 5 is the default value
-    if length and (length <= 5 or length >= 33):
-        raise HTTPException(400, "Length parameter must be between 5 and 33")
-    else:
-        length = 10
 
     with Session(engine) as sess:
         query = select(User).where(User.email == email)
         user = sess.exec(query).first()
 
-        if not user:
+        if not user or not user.id:
             raise HTTPException(404, "auth/user-not-found")
 
         # Get the token with the latest expiration time of the user
@@ -56,30 +53,36 @@ def generate_token(token_input: CreateTokenInput):
             last_token: Token = sess.exec(query).first()
 
             if last_token.is_valid():
-                raise HTTPException(400, "token.user-last-token-has-not-been-invalidated")
+                raise HTTPException(
+                    400, "token.user-last-token-has-not-been-invalidated"
+                )
 
-        token = create_auth_token(user.id)
+        token_length = 6
+
+        token = create_auth_token(user.id, token_length, 60 * 3, token_type)
 
         sess.add(token)
         sess.commit()
         sess.refresh(token)
 
         # Get the email code from the user's settings table
-        email_code = sess.exec(select(Settings.email_code).where(Settings.user_id == user.id)).first()
+        email_code = sess.exec(
+            select(Settings.email_code).where(Settings.user_id == user.id)
+        ).first()
         if not email_code:
             raise HTTPException(404, "token.missing-user-settings-email-code")
 
         # Send the token code to the user email
         send_email(
-            "Your authentication token", 
+            "Your authentication token",
             "AUTHENTICATION_TOKEN",
             [user.email],
             attachments=None,
             args={
                 "token": token.token,
                 "email_code": email_code,
-            }
-        ) 
+            },
+        )
 
         return token.__dict__
 

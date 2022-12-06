@@ -44,6 +44,7 @@ app.include_router(user.route, prefix="/api/users", tags=["users"])
 
 app.include_router(mailing.route, prefix="/api/mailing", tags=["mailing"])
 
+
 @app.on_event("startup")
 def init_app():
     print("The app started")

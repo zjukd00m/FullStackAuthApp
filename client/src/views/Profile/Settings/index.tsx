@@ -29,13 +29,6 @@ export default function ProfileSettings() {
     const avatarBtnRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (!user) return;
-        setName(user.display_name);
-        setPhone(user.phone_number);
-        setAvatar(user.avatar);
-    }, [user]);
-
-    useEffect(() => {
         if (!avatarBtnRef) return;
 
         avatarBtnRef.current?.addEventListener("change", async () => {

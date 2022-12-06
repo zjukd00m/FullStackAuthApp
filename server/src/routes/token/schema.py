@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from typing import Literal, Optional
+from src.enums import TokenType
 
 
 class CreateTokenInput(BaseModel):
-    email: str
-    length: Optional[int] = 5
+    user_email: str
+    token_type: TokenType

@@ -64,4 +64,5 @@ export interface IAuthService {
 export interface AuthServiceUser extends ServiceRequestCallbacks {
     email: string;
     password: string;
+    authCode?: string | null;
 }

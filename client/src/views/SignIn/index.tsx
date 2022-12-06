@@ -4,6 +4,8 @@ import useAuth from "../../context/auth/AuthHook";
 import "./styles.css";
 import { validateEmail } from "../../utils/validators";
 import { useNavigate } from "react-router-dom";
+import { requestToken } from "../../services/tokens";
+import { TokenType } from "../../types";
 
 interface FormError {
     email: string | null;
@@ -13,7 +15,10 @@ interface FormError {
 export default function SignIn() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [authCode, setAuthCode] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isAuthCodeVisible, setIsAuthCodeVisible] = useState(false)
+    const [isAuthCodeTextVisible, setIsAuthCodeTextVisible] = useState(false);
     const [errors, setErrors] = useState<FormError>({
         email: null,
         password: null,
@@ -51,19 +56,39 @@ export default function SignIn() {
         await signIn({
             email,
             password,
+            authCode,
             onHTTPSuccess: () => {
+                setIsAuthCodeVisible(false);
                 navigate("/");
             },
-            onHTTPError: (_, data) => {
-                if (data.detail === "auth.invalid-user-or-password")
+            onHTTPError: (status, data) => {
+                console.log(data)
+                if (typeof data?.detail === "object") {
+                    if (data.detail?.length) {
+                        const { msg } = data.detail[0];
+                        setIsAuthCodeVisible(true);
+                        toast.error(msg);
+                    }
+                } else if (data.detail === "auth.invalid-user-or-password")
                     toast.error("Incorrect email or password");
-                else
+                else if (data?.detail === "auth.missing-signin-code") {
+                    toast.warn("Make sure to enter the sign in code");
+                    setIsAuthCodeVisible(true);
+                    // Send the user an email to request the signin code
+                } else if (data?.detail === "auth.token-not-found") {
+                    setIsAuthCodeVisible(true);
+                    toast.error("The token was not found or it expired");
+                }
+                else {
+                    setIsAuthCodeVisible(false);
                     toast.error(data.detail);
+                }
             },
             onHTTPNetworkError: (e) => {
                 toast.error(e.message);
             },
         });
+
     }
 
     function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -108,6 +133,22 @@ export default function SignIn() {
                 password: null,
             }));
         }
+    }
+
+    async function handleSendAuthCode() {
+        await requestToken(email, TokenType.SIGNIN_CODE, {
+            onHTTPSuccess: () => {
+                toast.info("An email was sent with the auth code");
+            },
+            onHTTPError: (status, data) => {
+              if (data?.detail === "token.user-last-token-has-not-been-invalidated") {
+                toast.warn("The code was already sent to your email");
+              }
+            },
+            onHTTPNetworkError: (e) => {
+                toast.error(e.message);
+            }
+        })
     }
 
     return (
@@ -155,6 +196,33 @@ export default function SignIn() {
                             <p className="form-text text-danger my-2"> {errors.password} </p>
                         )}
                     </div>
+                    {
+                        isAuthCodeVisible ? (
+                            <div className="form-element my-5">
+                                <label className="form-label my-1"> Code </label>
+                                <div className="d-flex position-relative align-items-center">
+                                    <input
+                                        value={authCode}
+                                        onChange={(e) => setAuthCode(e.target.value)}
+                                        type={isAuthCodeTextVisible ? "text" : "password"}
+                                        className="form-control ps-5 outline-none"
+                                    />
+                                    {!isAuthCodeTextVisible ? (
+                                        <i
+                                            className="fa-solid fa-eye fa-lg position-absolute ps-3"
+                                            onClick={() => setIsAuthCodeTextVisible(true)}
+                                        ></i>
+                                    ) : (
+                                        <i
+                                            className="fa-solid fa-eye-slash fa-lg position-absolute ps-3"
+                                            onClick={() => setIsAuthCodeTextVisible(false)}
+                                        ></i>
+                                    )}
+                                    <a className="btn btn-sm btn-link" style={{ fontSize: "14px" }} onClick={handleSendAuthCode} > Send </a>
+                                </div>
+                            </div>
+                        ) : null 
+                    }
                     <button className="btn btn-primary btn-sm w-100 text-white">Sign In</button>
                     <div className="form-footer">
                         <p> Don't have an account yet ? </p>
