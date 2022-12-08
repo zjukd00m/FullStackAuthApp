@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 from src.models import Token, User, Settings
 from src.utils.db import engine
 from src.services.users.settings import get_user_settings
+from src.services.mailing import send_email
 from .schema import EditSettings
 
 route = APIRouter()
@@ -195,23 +196,40 @@ def edit_settings(request: Request, user_id: int, edit_settings: EditSettings):
 
     with Session(engine) as sess:
         query = (
-            select(Settings)
+            select(Settings, User)
             .select_from(join(User, Settings, User.id == Settings.user_id))
             .where(User.id == user_id)
         )
         user_settings = sess.exec(query).first()
 
-        if not user_settings:
-            raise HTTPException(404, "user-settings.not-found")
+        if not user_settings or not len(user_settings):
+            raise HTTPException(404, "user.not-found")
 
-        if edit_settings.email_code != user_settings.email_code:
-            user_settings.email_code = edit_settings.email_code
+        if not len(user_settings) == 2:
+            raise HTTPException(500, "internal-server-error")
 
-        if edit_settings.signin_code != user_settings.signin_code:
-            user_settings.signin_code = edit_settings.signin_code
+        settings = user_settings[0]
+        user = user_settings[1]
 
-        sess.add(user_settings)
+        # When the email code changes then send an email to notify it
+        if edit_settings.email_code != settings.email_code:
+            send_email(
+                "Your email code was changed",
+                "EMAIL_CODE_CHANGED",
+                [user.email],
+                None,
+                {
+                    "old_email_code": settings.email_code,
+                    "email_code": edit_settings.email_code,
+                }
+            )
+            settings.email_code = edit_settings.email_code
+
+        if edit_settings.signin_code != settings.signin_code:
+            settings.signin_code = edit_settings.signin_code
+
+        sess.add(settings)
         sess.commit()
-        sess.refresh(user_settings)
+        sess.refresh(settings)
 
-        return {"data": user_settings.dict()}
+        return {"data": settings.dict()}

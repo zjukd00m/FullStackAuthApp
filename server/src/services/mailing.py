@@ -5,12 +5,14 @@ from ..settings import RAPID_API_HOST_SEND_GRID, RAPID_API_KEY_SEND_GRID
 from src.templates.email_confirm import get_email_confirmation_template
 from src.templates.email_sign_in_code import get_email_sign_in_code_template
 from src.templates.reset_password import get_email_reset_password_template
+from src.templates.on_email_code_changed import get_on_email_code_changed_template
 
 
 HTML_TEMPLATES = [
     "EMAIL_CONFIRMATION",
     "AUTHENTICATION_TOKEN",
-    "RESET_PASSWORD"
+    "RESET_PASSWORD",
+    "EMAIL_CODE_CHANGED",
 ]
 
 JSON_HEADERS = {
@@ -54,7 +56,7 @@ class SendGridClient:
 
 def send_email(
     subject: str,
-    template: Literal["EMAIL_CONFIRMATION", "AUTHENTICATION_TOKEN", "RESET_PASSWORD"],
+    template: Literal["EMAIL_CONFIRMATION", "AUTHENTICATION_TOKEN", "RESET_PASSWORD", "EMAIL_CODE_CHANGED"],
     to: List[str],
     attachments: Optional[List[str]] = [],
     args: Dict = {},
@@ -113,6 +115,14 @@ def send_email(
         html = get_email_reset_password_template({
             "restore_password_url": restore_password_url, 
             "email_code": email_code
+        })
+
+    elif template == "EMAIL_CODE_CHANGED":
+        old_email_code = args.get("old_email_code")
+
+        html = get_on_email_code_changed_template({
+            "old_email_code": old_email_code,
+            "new_email_code": email_code,
         })
 
     send_grid_client = SendGridClient()
