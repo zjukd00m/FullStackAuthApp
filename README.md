@@ -67,3 +67,14 @@ docker compose up -d server
 Using FastAPI autogenerates the endpoint documentation using the openapi schema and it's served at:
 
 >   /docs
+
+# Client
+
+
+
+
+
+
+### Sources
+
+[How to protect a react route with react router dom](https://www.youtube.com/watch?v=oUZjO00NkhY)

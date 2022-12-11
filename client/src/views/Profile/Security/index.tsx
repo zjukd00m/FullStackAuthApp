@@ -63,7 +63,7 @@ export default function ProfileSecurity() {
             onHTTPSuccess: (data) => {
                 toast.success(data.message);
                 setTimeout(() => {
-                    navigate("/")
+                    navigate("/signup");
                 }, 3000);
             },
             onHTTPError: (status, data) => {

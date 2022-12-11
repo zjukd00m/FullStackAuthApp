@@ -16,7 +16,8 @@ export const INITIAL_STATE: IAuthState = {
             signin_code: false,
             user_id: 0,
             redirect_url: "",
-        }
+        },
+        groups: [],
     },
     error: null,
 };

@@ -14,6 +14,7 @@
     "bootstrap": "^5.2.2",
     "buffer": "^6.0.3",
     "react": "^18.2.0",
+    "react-cookie": "^4.1.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.39.3",
     "react-icons": "^4.4.0",
@@ -47,6 +48,7 @@
     "eslint-config-standard-with-typescript": "^23.0.0",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-n": "^15.0.0",
-    "eslint-plugin-promise": "^6.0.0"
+    "eslint-plugin-promise": "^6.0.0",
+    "ts-node": "^10.9.1"
   }
 }

@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer, useMemo } from "react";
 import { authReducer, INITIAL_STATE } from "./reducer";
 import { IAuthContext } from "./types";
 
@@ -14,8 +14,10 @@ type AuthProviderProps = {
 export default function AuthProvider({ children }: AuthProviderProps) {
     const [state, dispatch] = useReducer(authReducer, INITIAL_STATE);
 
+    const authState = useMemo(() => state, [state.user]);
+
     return (
-        <AuthContext.Provider value={{ state, dispatch }}>
+        <AuthContext.Provider value={{ state: authState, dispatch }}>
             {children}
         </AuthContext.Provider>
     );

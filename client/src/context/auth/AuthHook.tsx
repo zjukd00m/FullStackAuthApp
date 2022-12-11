@@ -18,7 +18,8 @@ export default function useAuth() {
         dispatch,
     } = useContext(AuthContext);
 
-    // On every render, verify if the user is logged in
+    // On every render, verify if the user is logged in and then redirect
+    // to the route the user was in
     useEffect(() => {
         if (!isAuthenticated)
         (async () => {
@@ -26,7 +27,7 @@ export default function useAuth() {
                 onHTTPSuccess: (data) => {
                     dispatch({
                         type: "SET_USER",
-                        payload: data,
+                        payload: { user: data },
                     });
                 },
                 onHTTPError: () => {},
@@ -109,6 +110,11 @@ export default function useAuth() {
 
             if (r.ok) {                
                 // Fetch the user profile
+                const user = data.data;
+                dispatch({
+                    type: "SET_USER",
+                    payload: { user }
+                })
                 onHTTPSuccess(data);
             } else {
                 onHTTPError(r.status, data);

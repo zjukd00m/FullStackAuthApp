@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../context/auth/AuthHook";
 import { AuthUser } from "../../context/auth/types";
 import "./styles.css";
@@ -34,13 +34,14 @@ export default function Navbar(props: NavbarProps) {
     const { user } = props;
     const { signOut } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const profileMenu = [
         {
             element: "Settings",
             action: () => {
                 setShowProfileMenu(false);
-                navigate("/profile");
+                navigate(`${location.pathname}/profile`);
             }
         },
         {
@@ -71,7 +72,7 @@ export default function Navbar(props: NavbarProps) {
         <div className="navigation-container">
             <nav className="navigation">
                 <div className="nav-header">
-                    <Link to="/" className="nav-title">
+                    <Link to={user?.groups?.includes("ADMIN") ? "/admin" : "/"} className="nav-title">
                         Admin Dashboard
                     </Link>
                 </div>

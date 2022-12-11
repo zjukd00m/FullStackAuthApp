@@ -17,3 +17,5 @@ export enum TokenType {
     RESET_PASSWORD ="RESET_PASSWORD",
     OTHER = "OTHER"
 }
+
+export type AuthGroup = "ADMIN" | "OTHER";

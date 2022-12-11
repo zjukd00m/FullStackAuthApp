@@ -1,8 +1,7 @@
 import React from "react";
 import { ServiceRequestCallbacks } from "../../services/types";
 import { UserSettings } from "../../types";
-
-type AuthGroup = "ADMIN" | "OTHER";
+import { AuthGroup } from "../../types";
 
 type UserGroups = AuthGroup;
 
@@ -16,7 +15,7 @@ export interface AuthUser {
     phone_number?: string;
     display_name?: string;
     avatar?: string;
-    groups?: UserGroups[];
+    groups: UserGroups[];
     settings?: UserSettings;
 }
 

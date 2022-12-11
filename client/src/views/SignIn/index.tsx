@@ -24,11 +24,16 @@ export default function SignIn() {
         password: null,
     });
 
-    const { signIn, isAuthenticated } = useAuth();
+    const { signIn, isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (isAuthenticated) navigate("/");
+        if (isAuthenticated) {
+            console.log("The user groups")
+            console.log(user.groups)
+            if (!user.groups.includes("ADMIN")) navigate("/");
+            else navigate("/");
+        }
     }, [isAuthenticated]);
 
     async function handleSubmit(e: any) {
@@ -57,12 +62,13 @@ export default function SignIn() {
             email,
             password,
             authCode,
-            onHTTPSuccess: () => {
+            onHTTPSuccess: ({ data }) => {
                 setIsAuthCodeVisible(false);
-                navigate("/");
+                const { groups } = data;
+                if (groups.includes("ADMIN")) navigate("/admin");
+                else navigate("/");
             },
             onHTTPError: (status, data) => {
-                console.log(data)
                 if (typeof data?.detail === "object") {
                     if (data.detail?.length) {
                         const { msg } = data.detail[0];
@@ -88,7 +94,6 @@ export default function SignIn() {
                 toast.error(e.message);
             },
         });
-
     }
 
     function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -137,7 +142,12 @@ export default function SignIn() {
 
     async function handleSendAuthCode() {
         await requestToken(email, TokenType.SIGNIN_CODE, {
-            onHTTPSuccess: () => {
+            onHTTPSuccess: (data) => {
+                const { expires_at } = data;
+                const expiresAt = new Date(expires_at);
+                // setExpirationTime(expiresAt);
+                console.log("This fucking code expires at");
+                console.log(expiresAt);
                 toast.info("An email was sent with the auth code");
             },
             onHTTPError: (status, data) => {
@@ -155,7 +165,9 @@ export default function SignIn() {
         <div className="view">
             <div className="form-wrapper">
                 <form className="signup-form" onSubmit={handleSubmit}>
-                    <p className="fs-2"> Signin </p>
+                    <div className="d-flex align-items-center">
+                        <p className="fs-2 flex-grow-1"> Signin </p>
+                    </div>
                     <div className="form-element my-5">
                         <label className="form-label my-1"> Email </label>
                         <div className="d-flex position-relative align-items-center">

@@ -101,3 +101,16 @@ code {
     border-bottom: 1px solid #282a36;
     margin: 0.4rem 0;
 }
+
+/* .link-btn:hover {
+    color: black;
+} */
+
+.active-link {
+    background-color: var(--bg-dark-primary);
+    color: whitesmoke;
+}
+
+.active-link:hover {
+    color: whitesmoke;
+}
